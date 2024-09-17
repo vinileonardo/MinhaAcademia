@@ -23,13 +23,14 @@ function abrirModal(dia, indice = null) {
   diaAtual.value = dia;
   indiceExercicio.value = indice;
 
-  modoVideoSelect.value = '';
+  // Iniciar o modo de vídeo como 'link'
+  modoVideoSelect.value = 'link';
   linkYoutubeInput.value = '';
   termoPesquisaInput.value = '';
   resultadosPesquisaDiv.innerHTML = '';
   previewLinkDiv.innerHTML = '';
   videoSelecionadoDiv.innerHTML = '';
-  document.getElementById('container-link').style.display = 'none';
+  document.getElementById('container-link').style.display = 'block';
   document.getElementById('container-pesquisa').style.display = 'none';
 
   if (indice !== null) {
@@ -38,22 +39,23 @@ function abrirModal(dia, indice = null) {
     const exercicio = exercicios[indice];
     nomeExercicioInput.value = exercicio.nome;
 
+    // Sempre abrir como se o vídeo tivesse sido inserido via link
+    // Preencher o link do YouTube e pré-exibir o vídeo
+
+    let videoLink = '';
+
     if (exercicio.modo === 'link') {
-      modoVideoSelect.value = 'link';
-      document.getElementById('container-link').style.display = 'block';
-      linkYoutubeInput.value = exercicio.link;
-      // Pré-exibir o vídeo
-      preExibirVideo();
+      videoLink = exercicio.link;
     } else if (exercicio.modo === 'pesquisa') {
-      modoVideoSelect.value = 'pesquisar';
-      document.getElementById('container-pesquisa').style.display = 'block';
-      // Exibir o vídeo selecionado anteriormente
-      termoPesquisaInput.dataset.videoId = exercicio.videoId;
-      termoPesquisaInput.dataset.videoTitulo = exercicio.videoTitulo;
-      videoSelecionadoDiv.innerHTML = `
-        <p>Vídeo Selecionado: ${exercicio.videoTitulo}</p>
-      `;
+      // Construir o link do YouTube a partir do videoId
+      videoLink = 'https://www.youtube.com/watch?v=' + exercicio.videoId;
     }
+
+    linkYoutubeInput.value = videoLink;
+
+    // Pré-exibir o vídeo
+    preExibirVideo();
+
   } else {
     tituloModal.textContent = 'Adicionar Exercício';
     nomeExercicioInput.value = '';
@@ -85,8 +87,6 @@ document.getElementById('form-exercicio').addEventListener('submit', function(ev
   const modoVideo = document.getElementById('modo-video').value;
   const linkYoutube = document.getElementById('link-youtube').value.trim();
   const termoPesquisaInput = document.getElementById('termo-pesquisa');
-  const videoIdSelecionado = termoPesquisaInput.dataset.videoId;
-  const videoTituloSelecionado = termoPesquisaInput.dataset.videoTitulo;
 
   if (!nomeExercicio) {
     alert("Por favor, preencha o nome do exercício.");
@@ -115,6 +115,8 @@ document.getElementById('form-exercicio').addEventListener('submit', function(ev
       alert("Link do YouTube inválido.");
     }
   } else if (modoVideo === 'pesquisar') {
+    const videoIdSelecionado = termoPesquisaInput.dataset.videoId;
+    const videoTituloSelecionado = termoPesquisaInput.dataset.videoTitulo;
     if (!videoIdSelecionado || !videoTituloSelecionado) {
       alert("Por favor, selecione um vídeo da pesquisa.");
       return;
