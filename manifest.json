@@ -1,6 +1,6 @@
 {
-    "name": "Controle de Treino",
-    "short_name": "Treino",
+    "name": "Minha Academia",
+    "short_name": "Minha Academia",
     "start_url": "index.html",
     "display": "standalone",
     "background_color": "#ffffff",
