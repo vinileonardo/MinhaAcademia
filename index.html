@@ -4,54 +4,118 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controle de Treino</title>
-  <link rel="stylesheet" href="styles.css">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Manifesto -->
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <div class="tabs">
-    <button class="tab-button" data-day="segunda">Segunda-feira</button>
-    <button class="tab-button" data-day="terca">Terça-feira</button>
-    <button class="tab-button" data-day="quarta">Quarta-feira</button>
-    <button class="tab-button" data-day="quinta">Quinta-feira</button>
-    <button class="tab-button" data-day="sexta">Sexta-feira</button>
-    <button class="tab-button" data-day="sabado">Sábado</button>
-    <button class="tab-button" data-day="domingo">Domingo</button>
-  </div>
-  <div class="content">
-    <!-- Conteúdo para cada dia da semana -->
-    <div id="segunda" class="day-content">
-      <button onclick="abrirModal('segunda')">Adicionar Exercício</button>
-      <button onclick="zerarDia('segunda')" class="reset-button">Zerar Dia</button>
-      <div class="exercicios-lista" id="exercicios-segunda"></div>
+  <!-- Navegação de abas -->
+  <nav class="nav nav-tabs" id="nav-tab" role="tablist">
+    <a class="nav-item nav-link active" id="nav-segunda-tab" data-toggle="tab" href="#nav-segunda" role="tab" aria-controls="nav-segunda" aria-selected="true" onclick="ativarAba('segunda')">Segunda-feira</a>
+    <a class="nav-item nav-link" id="nav-terca-tab" data-toggle="tab" href="#nav-terca" role="tab" aria-controls="nav-terca" aria-selected="false" onclick="ativarAba('terca')">Terça-feira</a>
+    <a class="nav-item nav-link" id="nav-quarta-tab" data-toggle="tab" href="#nav-quarta" role="tab" aria-controls="nav-quarta" aria-selected="false" onclick="ativarAba('quarta')">Quarta-feira</a>
+    <a class="nav-item nav-link" id="nav-quinta-tab" data-toggle="tab" href="#nav-quinta" role="tab" aria-controls="nav-quinta" aria-selected="false" onclick="ativarAba('quinta')">Quinta-feira</a>
+    <a class="nav-item nav-link" id="nav-sexta-tab" data-toggle="tab" href="#nav-sexta" role="tab" aria-controls="nav-sexta" aria-selected="false" onclick="ativarAba('sexta')">Sexta-feira</a>
+    <a class="nav-item nav-link" id="nav-sabado-tab" data-toggle="tab" href="#nav-sabado" role="tab" aria-controls="nav-sabado" aria-selected="false" onclick="ativarAba('sabado')">Sábado</a>
+    <a class="nav-item nav-link" id="nav-domingo-tab" data-toggle="tab" href="#nav-domingo" role="tab" aria-controls="nav-domingo" aria-selected="false" onclick="ativarAba('domingo')">Domingo</a>
+  </nav>
+
+  <!-- Conteúdo das abas -->
+  <div class="tab-content" id="nav-tabContent">
+    <!-- Segunda-feira -->
+    <div class="tab-pane fade show active" id="nav-segunda" role="tabpanel" aria-labelledby="nav-segunda-tab">
+      <div class="container mt-4">
+        <button class="btn btn-primary mb-2" onclick="abrirModal('segunda')">Adicionar Exercício</button>
+        <button class="btn btn-danger mb-2" onclick="zerarDia('segunda')">Zerar Dia</button>
+        <div class="row" id="exercicios-segunda"></div>
+      </div>
     </div>
-    <!-- Repita para os outros dias -->
-    <!-- ... (Repita o bloco acima para cada dia da semana, alterando 'segunda' para o dia correspondente) -->
-    <!-- Exemplo para terça-feira -->
-    <div id="terca" class="day-content">
-      <button onclick="abrirModal('terca')">Adicionar Exercício</button>
-      <button onclick="zerarDia('terca')" class="reset-button">Zerar Dia</button>
-      <div class="exercicios-lista" id="exercicios-terca"></div>
+    <!-- Terça-feira -->
+    <div class="tab-pane fade" id="nav-terca" role="tabpanel" aria-labelledby="nav-terca-tab">
+      <div class="container mt-4">
+        <button class="btn btn-primary mb-2" onclick="abrirModal('terca')">Adicionar Exercício</button>
+        <button class="btn btn-danger mb-2" onclick="zerarDia('terca')">Zerar Dia</button>
+        <div class="row" id="exercicios-terca"></div>
+      </div>
     </div>
-    <!-- Repita para os demais dias -->
+    <!-- Quarta-feira -->
+    <div class="tab-pane fade" id="nav-quarta" role="tabpanel" aria-labelledby="nav-quarta-tab">
+      <div class="container mt-4">
+        <button class="btn btn-primary mb-2" onclick="abrirModal('quarta')">Adicionar Exercício</button>
+        <button class="btn btn-danger mb-2" onclick="zerarDia('quarta')">Zerar Dia</button>
+        <div class="row" id="exercicios-quarta"></div>
+      </div>
+    </div>
+    <!-- Quinta-feira -->
+    <div class="tab-pane fade" id="nav-quinta" role="tabpanel" aria-labelledby="nav-quinta-tab">
+      <div class="container mt-4">
+        <button class="btn btn-primary mb-2" onclick="abrirModal('quinta')">Adicionar Exercício</button>
+        <button class="btn btn-danger mb-2" onclick="zerarDia('quinta')">Zerar Dia</button>
+        <div class="row" id="exercicios-quinta"></div>
+      </div>
+    </div>
+    <!-- Sexta-feira -->
+    <div class="tab-pane fade" id="nav-sexta" role="tabpanel" aria-labelledby="nav-sexta-tab">
+      <div class="container mt-4">
+        <button class="btn btn-primary mb-2" onclick="abrirModal('sexta')">Adicionar Exercício</button>
+        <button class="btn btn-danger mb-2" onclick="zerarDia('sexta')">Zerar Dia</button>
+        <div class="row" id="exercicios-sexta"></div>
+      </div>
+    </div>
+    <!-- Sábado -->
+    <div class="tab-pane fade" id="nav-sabado" role="tabpanel" aria-labelledby="nav-sabado-tab">
+      <div class="container mt-4">
+        <button class="btn btn-primary mb-2" onclick="abrirModal('sabado')">Adicionar Exercício</button>
+        <button class="btn btn-danger mb-2" onclick="zerarDia('sabado')">Zerar Dia</button>
+        <div class="row" id="exercicios-sabado"></div>
+      </div>
+    </div>
+    <!-- Domingo -->
+    <div class="tab-pane fade" id="nav-domingo" role="tabpanel" aria-labelledby="nav-domingo-tab">
+      <div class="container mt-4">
+        <button class="btn btn-primary mb-2" onclick="abrirModal('domingo')">Adicionar Exercício</button>
+        <button class="btn btn-danger mb-2" onclick="zerarDia('domingo')">Zerar Dia</button>
+        <div class="row" id="exercicios-domingo"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal para adicionar/editar exercício -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span id="fechar-modal" class="close">&times;</span>
-      <h2 id="modal-titulo">Adicionar Exercício</h2>
-      <form id="form-exercicio">
-        <input type="hidden" id="dia-atual">
-        <input type="hidden" id="indice-exercicio">
-        <label for="nome-exercicio">Nome do Exercício:</label>
-        <input type="text" id="nome-exercicio" required>
-        <label for="link-youtube">Link do YouTube:</label>
-        <input type="url" id="link-youtube" required>
-        <button type="submit">Salvar</button>
-      </form>
+  <div class="modal fade" id="modalExercicio" tabindex="-1" role="dialog" aria-labelledby="modalExercicioLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="modalExercicioLabel" class="modal-title">Adicionar Exercício</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="form-exercicio">
+          <div class="modal-body">
+            <input type="hidden" id="dia-atual">
+            <input type="hidden" id="indice-exercicio">
+            <div class="form-group">
+              <label for="nome-exercicio">Nome do Exercício:</label>
+              <input type="text" class="form-control" id="nome-exercicio" required>
+            </div>
+            <div class="form-group">
+              <label for="link-youtube">Link do YouTube:</label>
+              <input type="url" class="form-control" id="link-youtube" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Salvar</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
+  <!-- Scripts necessários -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="app.js"></script>
   <script>
     // Registro do Service Worker
