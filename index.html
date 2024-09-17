@@ -81,6 +81,7 @@
     </div>
   </div>
 
+
   <!-- Modal para adicionar/editar exercício -->
   <div class="modal fade" id="modalExercicio" tabindex="-1" role="dialog" aria-labelledby="modalExercicioLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -100,8 +101,21 @@
               <input type="text" class="form-control" id="nome-exercicio" required>
             </div>
             <div class="form-group">
+              <label for="modo-video">Selecione o modo de inserir o vídeo:</label>
+              <select class="form-control" id="modo-video" required>
+                <option value="link">Inserir Link do YouTube</option>
+                <option value="pesquisar">Pesquisar Vídeo no YouTube</option>
+              </select>
+            </div>
+            <div id="container-link" class="form-group">
               <label for="link-youtube">Link do YouTube:</label>
-              <input type="url" class="form-control" id="link-youtube" required>
+              <input type="url" class="form-control" id="link-youtube">
+            </div>
+            <div id="container-pesquisa" class="form-group" style="display: none;">
+              <label for="termo-pesquisa">Pesquisar no YouTube:</label>
+              <input type="text" class="form-control" id="termo-pesquisa">
+              <button type="button" class="btn btn-primary mt-2" onclick="pesquisarYoutube()">Pesquisar</button>
+              <div id="resultados-pesquisa" class="mt-3"></div>
             </div>
           </div>
           <div class="modal-footer">
@@ -115,6 +129,9 @@
 
   <!-- Scripts necessários -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <!-- Substitua o jQuery Slim pelo jQuery completo para usar AJAX -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="app.js"></script>
   <script>
