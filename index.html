@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Treino</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div class="tabs">
+    <button class="tab-button" data-day="segunda">Segunda-feira</button>
+    <button class="tab-button" data-day="terca">Terça-feira</button>
+    <button class="tab-button" data-day="quarta">Quarta-feira</button>
+    <button class="tab-button" data-day="quinta">Quinta-feira</button>
+    <button class="tab-button" data-day="sexta">Sexta-feira</button>
+    <button class="tab-button" data-day="sabado">Sábado</button>
+    <button class="tab-button" data-day="domingo">Domingo</button>
+  </div>
+  <div class="content">
+    <!-- Conteúdo para cada dia da semana -->
+    <div id="segunda" class="day-content">
+      <button onclick="abrirModal('segunda')">Adicionar Exercício</button>
+      <button onclick="zerarDia('segunda')" class="reset-button">Zerar Dia</button>
+      <div class="exercicios-lista" id="exercicios-segunda"></div>
+    </div>
+    <!-- Repita para os outros dias -->
+    <!-- ... (Repita o bloco acima para cada dia da semana, alterando 'segunda' para o dia correspondente) -->
+    <!-- Exemplo para terça-feira -->
+    <div id="terca" class="day-content">
+      <button onclick="abrirModal('terca')">Adicionar Exercício</button>
+      <button onclick="zerarDia('terca')" class="reset-button">Zerar Dia</button>
+      <div class="exercicios-lista" id="exercicios-terca"></div>
+    </div>
+    <!-- Repita para os demais dias -->
+  </div>
+
+  <!-- Modal para adicionar/editar exercício -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span id="fechar-modal" class="close">&times;</span>
+      <h2 id="modal-titulo">Adicionar Exercício</h2>
+      <form id="form-exercicio">
+        <input type="hidden" id="dia-atual">
+        <input type="hidden" id="indice-exercicio">
+        <label for="nome-exercicio">Nome do Exercício:</label>
+        <input type="text" id="nome-exercicio" required>
+        <label for="link-youtube">Link do YouTube:</label>
+        <input type="url" id="link-youtube" required>
+        <button type="submit">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Registro do Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registrado', reg))
+        .catch(err => console.warn('Erro ao registrar o Service Worker', err));
+    }
+  </script>
+</body>
+</html>
