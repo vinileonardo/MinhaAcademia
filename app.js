@@ -1,6 +1,11 @@
 // Sua API Key do YouTube Data API v3
 const API_KEY = 'AIzaSyDyQMriHzOJM4Bc76Hc8coJWM4iRJju-V4'; // Substitua por sua API Key
 
+// Variáveis globais para armazenar dados temporários
+let exercicioTemp = {};
+let diaTemp = '';
+let indiceTemp = null;
+
 // Função para abrir o modal de adicionar/editar exercício
 function abrirModal(dia, indice = null) {
   $('#modalExercicio').modal('show');
@@ -12,15 +17,19 @@ function abrirModal(dia, indice = null) {
   const linkYoutubeInput = document.getElementById('link-youtube');
   const termoPesquisaInput = document.getElementById('termo-pesquisa');
   const resultadosPesquisaDiv = document.getElementById('resultados-pesquisa');
+  const previewLinkDiv = document.getElementById('preview-link');
+  const videoSelecionadoDiv = document.getElementById('video-selecionado');
 
   diaAtual.value = dia;
   indiceExercicio.value = indice;
 
-  modoVideoSelect.value = 'link';
+  modoVideoSelect.value = '';
   linkYoutubeInput.value = '';
   termoPesquisaInput.value = '';
   resultadosPesquisaDiv.innerHTML = '';
-  document.getElementById('container-link').style.display = 'block';
+  previewLinkDiv.innerHTML = '';
+  videoSelecionadoDiv.innerHTML = '';
+  document.getElementById('container-link').style.display = 'none';
   document.getElementById('container-pesquisa').style.display = 'none';
 
   if (indice !== null) {
@@ -31,22 +40,19 @@ function abrirModal(dia, indice = null) {
 
     if (exercicio.modo === 'link') {
       modoVideoSelect.value = 'link';
-      linkYoutubeInput.value = exercicio.link;
       document.getElementById('container-link').style.display = 'block';
-      document.getElementById('container-pesquisa').style.display = 'none';
+      linkYoutubeInput.value = exercicio.link;
+      // Pré-exibir o vídeo
+      preExibirVideo();
     } else if (exercicio.modo === 'pesquisa') {
       modoVideoSelect.value = 'pesquisar';
-      document.getElementById('container-link').style.display = 'none';
       document.getElementById('container-pesquisa').style.display = 'block';
       // Exibir o vídeo selecionado anteriormente
-      resultadosPesquisaDiv.innerHTML = `
-        <p>Vídeo selecionado:</p>
-        <div class="embed-responsive embed-responsive-16by9">
-          <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/${exercicio.videoId}" allowfullscreen></iframe>
-        </div>
-      `;
-      // Armazenar o vídeo selecionado
       termoPesquisaInput.dataset.videoId = exercicio.videoId;
+      termoPesquisaInput.dataset.videoTitulo = exercicio.videoTitulo;
+      videoSelecionadoDiv.innerHTML = `
+        <p>Vídeo Selecionado: ${exercicio.videoTitulo}</p>
+      `;
     }
   } else {
     tituloModal.textContent = 'Adicionar Exercício';
@@ -57,11 +63,14 @@ function abrirModal(dia, indice = null) {
 // Alterar campos visíveis com base no modo selecionado
 document.getElementById('modo-video').addEventListener('change', function() {
   const modo = this.value;
+  document.getElementById('container-link').style.display = 'none';
+  document.getElementById('container-pesquisa').style.display = 'none';
+  document.getElementById('preview-link').innerHTML = '';
+  document.getElementById('resultados-pesquisa').innerHTML = '';
+  document.getElementById('video-selecionado').innerHTML = '';
   if (modo === 'link') {
     document.getElementById('container-link').style.display = 'block';
-    document.getElementById('container-pesquisa').style.display = 'none';
   } else if (modo === 'pesquisar') {
-    document.getElementById('container-link').style.display = 'none';
     document.getElementById('container-pesquisa').style.display = 'block';
   }
 });
@@ -77,44 +86,94 @@ document.getElementById('form-exercicio').addEventListener('submit', function(ev
   const linkYoutube = document.getElementById('link-youtube').value.trim();
   const termoPesquisaInput = document.getElementById('termo-pesquisa');
   const videoIdSelecionado = termoPesquisaInput.dataset.videoId;
+  const videoTituloSelecionado = termoPesquisaInput.dataset.videoTitulo;
 
   if (!nomeExercicio) {
     alert("Por favor, preencha o nome do exercício.");
     return;
   }
 
-  let exercicio = { nome: nomeExercicio };
+  exercicioTemp = { nome: nomeExercicio };
+  diaTemp = dia;
+  indiceTemp = indice;
 
   if (modoVideo === 'link') {
     if (!linkYoutube) {
       alert("Por favor, insira o link do YouTube.");
       return;
     }
-    exercicio.modo = 'link';
-    exercicio.link = linkYoutube;
+    exercicioTemp.modo = 'link';
+    exercicioTemp.link = linkYoutube;
+    // Obter título do vídeo
+    const videoID = extrairVideoID(linkYoutube);
+    if (videoID) {
+      obterTituloVideo(videoID, function(tituloVideo) {
+        exercicioTemp.videoTitulo = tituloVideo;
+        mostrarConfirmacao();
+      });
+    } else {
+      alert("Link do YouTube inválido.");
+    }
   } else if (modoVideo === 'pesquisar') {
-    if (!videoIdSelecionado) {
+    if (!videoIdSelecionado || !videoTituloSelecionado) {
       alert("Por favor, selecione um vídeo da pesquisa.");
       return;
     }
-    exercicio.modo = 'pesquisa';
-    exercicio.videoId = videoIdSelecionado;
+    exercicioTemp.modo = 'pesquisa';
+    exercicioTemp.videoId = videoIdSelecionado;
+    exercicioTemp.videoTitulo = videoTituloSelecionado;
+    mostrarConfirmacao();
+  } else {
+    alert("Por favor, selecione o modo de inserir o vídeo.");
+  }
+});
+
+// Função para mostrar o modal de confirmação
+function mostrarConfirmacao() {
+  $('#modalExercicio').modal('hide');
+
+  document.getElementById('confirm-titulo').textContent = exercicioTemp.nome;
+  document.getElementById('confirm-nome-video').textContent = exercicioTemp.videoTitulo;
+
+  const confirmPreviewVideoDiv = document.getElementById('confirm-preview-video');
+  confirmPreviewVideoDiv.innerHTML = '';
+
+  let videoID = '';
+  if (exercicioTemp.modo === 'link') {
+    videoID = extrairVideoID(exercicioTemp.link);
+  } else if (exercicioTemp.modo === 'pesquisa') {
+    videoID = exercicioTemp.videoId;
   }
 
-  const exercicios = JSON.parse(localStorage.getItem(dia)) || [];
+  if (videoID) {
+    confirmPreviewVideoDiv.innerHTML = `
+      <div class="embed-responsive embed-responsive-16by9">
+        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/${videoID}" allowfullscreen></iframe>
+      </div>
+    `;
+  } else {
+    confirmPreviewVideoDiv.innerHTML = '<p>Vídeo não disponível</p>';
+  }
 
-  if (indice === '' || indice === null) {
+  $('#modalConfirmacao').modal('show');
+}
+
+// Evento do botão confirmar salvar
+document.getElementById('btn-confirmar-salvar').addEventListener('click', function() {
+  const exercicios = JSON.parse(localStorage.getItem(diaTemp)) || [];
+
+  if (indiceTemp === '' || indiceTemp === null) {
     // Adiciona novo exercício
-    exercicios.push(exercicio);
+    exercicios.push(exercicioTemp);
   } else {
     // Edita exercício existente
-    exercicios[indice] = exercicio;
+    exercicios[indiceTemp] = exercicioTemp;
   }
 
-  localStorage.setItem(dia, JSON.stringify(exercicios));
+  localStorage.setItem(diaTemp, JSON.stringify(exercicios));
 
-  exibirExercicios(dia);
-  $('#modalExercicio').modal('hide');
+  exibirExercicios(diaTemp);
+  $('#modalConfirmacao').modal('hide');
 });
 
 // Função para pesquisar vídeos no YouTube
@@ -122,6 +181,7 @@ function pesquisarYoutube() {
   const termo = document.getElementById('termo-pesquisa').value.trim();
   const resultadosPesquisaDiv = document.getElementById('resultados-pesquisa');
   const termoPesquisaInput = document.getElementById('termo-pesquisa');
+  const videoSelecionadoDiv = document.getElementById('video-selecionado');
 
   if (!termo) {
     alert("Por favor, insira um termo de pesquisa.");
@@ -129,6 +189,9 @@ function pesquisarYoutube() {
   }
 
   resultadosPesquisaDiv.innerHTML = '<p>Pesquisando...</p>';
+  videoSelecionadoDiv.innerHTML = '';
+  termoPesquisaInput.dataset.videoId = '';
+  termoPesquisaInput.dataset.videoTitulo = '';
 
   $.ajax({
     url: 'https://www.googleapis.com/youtube/v3/search',
@@ -149,13 +212,15 @@ function pesquisarYoutube() {
 
         const resultadoItem = document.createElement('div');
         resultadoItem.className = 'resultado-item d-flex align-items-center mb-2';
-        resultadoItem.style.cursor = 'pointer';
         resultadoItem.onclick = function() {
           // Marcar o vídeo selecionado
           termoPesquisaInput.dataset.videoId = videoId;
+          termoPesquisaInput.dataset.videoTitulo = titulo;
           // Destacar o item selecionado
           document.querySelectorAll('.resultado-item').forEach(el => el.classList.remove('selecionado'));
           this.classList.add('selecionado');
+          // Exibir o título do vídeo selecionado
+          videoSelecionadoDiv.innerHTML = `<p>Vídeo Selecionado: ${titulo}</p>`;
         };
 
         const img = document.createElement('img');
@@ -174,6 +239,53 @@ function pesquisarYoutube() {
     error: function(error) {
       resultadosPesquisaDiv.innerHTML = '<p>Erro ao realizar a pesquisa.</p>';
       console.error('Erro na pesquisa do YouTube:', error);
+    }
+  });
+}
+
+// Função para pré-exibir o vídeo inserido por link
+function preExibirVideo() {
+  const linkYoutube = document.getElementById('link-youtube').value.trim();
+  const previewLinkDiv = document.getElementById('preview-link');
+
+  if (!linkYoutube) {
+    alert("Por favor, insira o link do YouTube.");
+    return;
+  }
+
+  const videoID = extrairVideoID(linkYoutube);
+  if (videoID) {
+    previewLinkDiv.innerHTML = `
+      <div class="embed-responsive embed-responsive-16by9">
+        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/${videoID}" allowfullscreen></iframe>
+      </div>
+    `;
+  } else {
+    previewLinkDiv.innerHTML = '<p>Link inválido ou vídeo não disponível.</p>';
+  }
+}
+
+// Função para obter o título do vídeo a partir do ID
+function obterTituloVideo(videoID, callback) {
+  $.ajax({
+    url: 'https://www.googleapis.com/youtube/v3/videos',
+    type: 'GET',
+    data: {
+      key: API_KEY,
+      id: videoID,
+      part: 'snippet'
+    },
+    success: function(data) {
+      if (data.items.length > 0) {
+        const titulo = data.items[0].snippet.title;
+        callback(titulo);
+      } else {
+        callback('Título não disponível');
+      }
+    },
+    error: function(error) {
+      console.error('Erro ao obter o título do vídeo:', error);
+      callback('Título não disponível');
     }
   });
 }

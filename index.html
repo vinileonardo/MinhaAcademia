@@ -8,6 +8,25 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- Manifesto -->
   <link rel="manifest" href="manifest.json">
+  <style>
+    .resultado-item {
+      cursor: pointer;
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .resultado-item:hover {
+      background-color: #f8f8f8;
+    }
+    .resultado-item.selecionado {
+      border-color: #28a745;
+      background-color: #e6ffe6;
+    }
+    #video-selecionado {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <!-- Navegação de abas -->
@@ -103,19 +122,23 @@
             <div class="form-group">
               <label for="modo-video">Selecione o modo de inserir o vídeo:</label>
               <select class="form-control" id="modo-video" required>
+                <option value="">Escolha uma opção</option>
                 <option value="link">Inserir Link do YouTube</option>
                 <option value="pesquisar">Pesquisar Vídeo no YouTube</option>
               </select>
             </div>
-            <div id="container-link" class="form-group">
+            <div id="container-link" class="form-group" style="display: none;">
               <label for="link-youtube">Link do YouTube:</label>
               <input type="url" class="form-control" id="link-youtube">
+              <button type="button" class="btn btn-primary mt-2" onclick="preExibirVideo()">Pré-Exibir</button>
+              <div id="preview-link" class="mt-3"></div>
             </div>
             <div id="container-pesquisa" class="form-group" style="display: none;">
               <label for="termo-pesquisa">Pesquisar no YouTube:</label>
               <input type="text" class="form-control" id="termo-pesquisa">
               <button type="button" class="btn btn-primary mt-2" onclick="pesquisarYoutube()">Pesquisar</button>
               <div id="resultados-pesquisa" class="mt-3"></div>
+              <div id="video-selecionado"></div>
             </div>
           </div>
           <div class="modal-footer">
@@ -123,6 +146,30 @@
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação -->
+  <div class="modal fade" id="modalConfirmacao" tabindex="-1" role="dialog" aria-labelledby="modalConfirmacaoLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="modalConfirmacaoLabel" class="modal-title">Confirmar Exercício</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Título:</strong> <span id="confirm-titulo"></span></p>
+          <p><strong>Nome do Vídeo:</strong> <span id="confirm-nome-video"></span></p>
+          <div id="confirm-preview-video" class="mt-3"></div>
+          <p class="mt-3">Deseja salvar este exercício?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" id="btn-confirmar-salvar">Sim</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Não</button>
+        </div>
       </div>
     </div>
   </div>
