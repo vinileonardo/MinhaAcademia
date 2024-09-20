@@ -10,6 +10,8 @@
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
    <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Seu CSS personalizado -->
+  <link rel="stylesheet" href="clone.css" />
   <!-- Manifesto -->
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" sizes="57x57" href="img/apple-icon-57x57.png">
@@ -183,56 +185,34 @@
     <i class="fab fa-spotify fa-2x"></i>
   </div>
 
-  <!-- Footer com o player -->
-  <footer id="spotify-player" id="spotify-player" class="bg-dark text-white fixed-bottom spotify-player">
-    <div class="container-fluid">
-      <div class="row align-items-center py-2">
-        <!-- Album em reprodução -->
-        <div class="col-12 col-md-3 d-flex align-items-center mb-3 mb-md-0">
+  <!-- Footer com o Player do Spotify -->
+  <footer id="spotify-player" class="spotify-player">
+    <div class="player-container container-fluid d-flex align-items-center justify-content-between p-3">
+      <div class="d-flex align-items-center">
+        <div class="album-art me-3">
           <img src="" alt="Album Art" id="album-art" width="60" height="60">
-          <div class="track-info album-info d-flex flex-column">
-            <div id="current-track" class="text-white text-decoration-none">Nenhuma música reproduzindo.</div>
-            <div id="artist-name" class="text-white text-decoration-none"></div>
-          </div>
-          <div class="album-icons ms-3 d-none d-md-flex flex-column">
-            <a href="#" class="text-white mb-2"><i class="far fa-heart"></i></a>
-          </div>
         </div>
-
-        <!-- Controle do player -->
-        <div class="col-12 col-md-6">
-          <div class="d-flex flex-column align-items-center">
-            <div class="player-controller mb-2">
-              <ul class="list-inline mb-0">
-                <li class="list-inline-item mx-2"><a href="#" class="text-white" ><i class="fas fa-random"></i></a></li>
-                <li class="list-inline-item mx-2"><a href="#" class="text-white" id="btn-prev"><i class="fas fa-step-backward"></i></a></li>
-                <li class="list-inline-item mx-2"><a href="#" class="text-white" id="btn-play"><i class="far fa-play-circle fa-2x"></i></a></li>
-                <li class="list-inline-item mx-2"><a href="#" class="text-white" id="btn-next"><i class="fas fa-step-forward"></i></a></li>
-                <li class="list-inline-item mx-2"><a href="#" class="text-white"><i class="fas fa-redo-alt"></i></a></li>
-              </ul>
-            </div>
-            <div class="d-flex align-items-center w-100">
-              <span class="song-progress me-3" id="current-time">0:00</span>
-              <div class="progress progress-main flex-grow-1 position-relative" id="progress-main" style="height: 8px;">
-                <div id="progress-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                <div class="progress-handle" id="handle-main" style="left:25%;"></div>
-              </div>
-              <span class="song-duration ms-3" id="total-duration">0:00</span>
-            </div>
-          </div>
+        <div class="track-info">
+          <div id="current-track">Nenhuma música reproduzindo.</div>
+          <div id="artist-name"></div>
         </div>
-
-        <!-- Controle da direita -->
-        <div class="col-12 col-md-3 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
-          <div class="d-flex align-items-center">
-            <a href="#" class="text-white me-3"><i class="fas fa-volume-up"></i></a>
-            <div class="progress progress-volume position-relative" id="progress-volume" style="width: 100px; height: 8px;">
-              <div id="volume-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-              <div class="progress-handle" id="handle-volume" style="left:25%;"></div>
-            </div>
-          </div>
+      </div>
+      <div class="playback-controls d-flex align-items-center">
+        <button id="btn-prev" class="btn btn-secondary me-2"><i class="fas fa-backward"></i></button>
+        <button id="btn-play" class="btn btn-success me-2"><i class="fas fa-play"></i></button>
+        <button id="btn-pause" class="btn btn-warning me-2" style="display: none;"><i class="fas fa-pause"></i></button>
+        <button id="btn-next" class="btn btn-primary me-4"><i class="fas fa-forward"></i></button>
+        <div class="volume-control d-flex align-items-center">
+          <i class="fas fa-volume-down me-2"></i>
+          <input type="range" id="volume-bar" min="0" max="100" value="50">
         </div>
-
+      </div>
+      <div class="progress-container flex-grow-1 mx-3">
+        <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-100">
+        <div class="d-flex justify-content-between">
+          <span id="current-time">0:00</span>
+          <span id="total-duration">0:00</span>
+        </div>
       </div>
     </div>
   </footer>

@@ -221,3 +221,143 @@ body {
         margin-top: 10px;
     }
 }
+
+
+/* clone.css */
+
+/* Estilos gerais */
+* {
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  
+  #player {
+    background-color: #171717;
+  }
+  
+  /* Album em reprodução */
+  .album-info a {
+    font-size: 0.9rem;
+  }
+  
+  .album-icons a {
+    color: white;
+    transition: color 0.3s;
+  }
+  
+  .album-icons a:hover {
+    color: #1dd05d;
+  }
+  
+  .pointer {
+    cursor: pointer;
+  }
+  
+  /* Controle do player */
+  .player-controller ul {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  
+  .player-controller ul li {
+    list-style: none;
+  }
+  
+  .player-controller ul li a {
+    color: white;
+    transition: color 0.3s;
+  }
+  
+  .player-controller ul li a:hover {
+    color: #1dd05d;
+  }
+  
+  .song-progress, .song-duration {
+    font-size: 0.8rem;
+  }
+  
+  /* Controle da direita */
+  .right-controller a {
+    color: white;
+    transition: color 0.3s;
+  }
+  
+  .right-controller a:hover {
+    color: #1dd05d;
+  }
+  
+  /* Barras de Progresso */
+  .progress-main, .progress-volume {
+    background-color: #535353;
+    border-radius: 5px;
+    position: relative; /* Necessário para posicionamento absoluto da bolinha */
+    overflow: visible; /* Permite que a bolinha escape do contêiner */
+  }
+  
+  .progress-bar {
+    background-color: #fff; /* Cor padrão: branco */
+    transition: width 0.3s, background-color 0.3s;
+    height: 8px; /* Altura ajustada para acomodar a bolinha */
+    border-radius: 5px;
+  }
+  
+  /* Efeito de Hover nas Barras de Progresso */
+  .progress-main:hover .progress-bar,
+  .progress-volume:hover .progress-bar {
+    background-color: #1dd05d; /* Verde */
+  }
+  
+  /* Bolinha na Barra de Progresso */
+  .progress-handle {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    background-color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    z-index: 2; /* Garante que a bolinha fique acima da barra */
+  }
+  
+  /* Efeitos de Hover na Bolinha */
+  .progress-handle:hover {
+    background-color: #1dd05d;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  
+  /* Hover nos Ícones */
+  #player i:hover {
+    color: #1dd05d;
+  }
+  
+  /* Responsividade da Imagem do Álbum */
+  .album-image {
+    width: 60px; /* Tamanho padrão para telas médias e grandes */
+    height: 60px;
+    object-fit: cover; /* Mantém a proporção da imagem, cortando se necessário */
+    border-radius: 5px; /* Opcional: adiciona borda arredondada */
+    transition: width 0.3s, height 0.3s; /* Transições suaves */
+  }
+  
+  /* Ajustes para Tamanhos de Tela Menores */
+  @media (max-width: 767.98px) {
+    .album-icons {
+      display: none;
+    }
+  
+    .progress-volume {
+      width: 80px;
+    }
+  
+    .album-image {
+      width: 40px; /* Reduz o tamanho da imagem em telas pequenas */
+      height: 40px;
+    }
+  }
+  

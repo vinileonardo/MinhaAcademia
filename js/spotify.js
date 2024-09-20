@@ -555,3 +555,63 @@ function msToTime(duration) {
 
   return minutes + ":" + seconds;
 }
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    function makeDraggable(handle, progressBar, callback) {
+      let isDragging = false;
+
+      handle.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        isDragging = true;
+      });
+
+      document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+
+        const rect = progressBar.getBoundingClientRect();
+        let offsetX = e.clientX - rect.left;
+
+        // Limitar o offsetX entre 0 e a largura do progress bar
+        offsetX = Math.max(0, Math.min(offsetX, rect.width));
+
+        // Calcular a porcentagem
+        const percent = (offsetX / rect.width) * 100;
+
+        // Atualizar a posição da bolinha
+        handle.style.left = percent + '%';
+
+        // Atualizar a largura da barra de progresso
+        const progress = progressBar.querySelector('.progress-bar');
+        progress.style.width = percent + '%';
+
+        // Chamar o callback com a porcentagem
+        if (callback) callback(percent);
+      });
+
+      document.addEventListener('mouseup', function() {
+        if (isDragging) {
+          isDragging = false;
+        }
+      });
+    }
+
+    // Selecionar os elementos da barra principal
+    const handleMain = document.getElementById('handle-main');
+    const progressMain = document.getElementById('progress-main');
+
+    // Selecionar os elementos da barra de volume
+    const handleVolume = document.getElementById('handle-volume');
+    const progressVolume = document.getElementById('progress-volume');
+
+    // Tornar as bolinhas arrastáveis
+    makeDraggable(handleMain, progressMain, function(percent) {
+      console.log('Progresso da Música:', percent + '%');
+      // Atualize a reprodução da música conforme a porcentagem
+    });
+
+    makeDraggable(handleVolume, progressVolume, function(percent) {
+      console.log('Volume:', percent + '%');
+      // Atualize o volume conforme a porcentagem
+    });
+  });
