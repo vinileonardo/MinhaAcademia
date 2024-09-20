@@ -464,3 +464,43 @@ body {
     pointer-events: none;
     opacity: 0.6;
 }
+
+
+/* Transições suaves para handles e barras de progresso */
+
+/* Transição para os handles de seek e volume */
+.progress-handle {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    background-color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s, left 0.1s ease-out; /* Adicionado 'left' com transição suave */
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    z-index: 2; /* Garante que a bolinha fique acima da barra */
+}
+
+/* Transição para as barras de progresso */
+.progress-bar {
+    background-color: #fff; /* Cor padrão: branco */
+    transition: width 0.1s ease-out, background-color 0.3s; /* Ajustado para transição mais rápida na largura */
+    height: 8px; /* Altura ajustada para acomodar a bolinha */
+    border-radius: 5px;
+}
+
+/* Transições adicionais para feedback visual durante hover */
+.progress-main:hover .progress-bar,
+.progress-volume:hover .progress-bar {
+    background-color: #1dd05d; /* Verde */
+    transition: background-color 0.3s; /* Mantém a transição para cor */
+}
+
+/* Transição para o handle durante hover */
+.progress-handle:hover {
+    background-color: #1dd05d;
+    transform: translate(-50%, -50%) scale(1.2);
+    transition: background-color 0.3s, transform 0.3s; /* Mantém as transições existentes */
+}

@@ -911,41 +911,36 @@ function mostrarConfirmacao() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    // ------------------------------
+    // Inicializa os módulos
+    SeekModule.init();
+    VolumeModule.init();
+});
+
+
+const SeekModule = (function() {
     // Seleção de Elementos
-    // ------------------------------
-    
-    // Controle de Seek (Progresso da Música)
     const handleMain = document.getElementById('handle-main');
     const progressMain = document.getElementById('progress-main');
     const progressBarMain = document.getElementById('progress-bar');
     const currentTimeEl = document.getElementById('current-time');
     const totalDurationEl = document.getElementById('total-duration');
 
-    // Controle de Volume
-    const handleVolume = document.getElementById('handle-volume');
-    const progressVolume = document.getElementById('progress-volume');
-    const volumeBar = document.getElementById('volume-bar');
-    const btnVolume = document.getElementById('btn-volume');
+    // Estado de Arrasto
+    let isDraggingSeek = false;
+    let finalPercentSeek = 0;
 
-    // ------------------------------
     // Funções Utilitárias
-    // ------------------------------
-
-    // Função para converter milissegundos em formato de tempo (m:ss)
     function msToTime(duration) {
         const seconds = Math.floor((duration / 1000) % 60);
         const minutes = Math.floor((duration / (1000 * 60)) % 60);
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
 
-    // Função para atualizar a UI da barra (handle e progress bar)
     function updateUI(handle, progressBar, percent) {
         handle.style.left = `${percent}%`;
         progressBar.style.width = `${percent}%`;
     }
 
-    // Função para realizar seek na API do Spotify
     async function performSeek(percent) {
         const player = window.spotifyPlayer;
         if (player) {
@@ -968,65 +963,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Função para atualizar o volume na API do Spotify
-    async function performVolumeUpdate(percent) {
-        const player = window.spotifyPlayer;
-        if (player) {
-            try {
-                const volume = percent / 100;
-                await player.setVolume(volume);
-                console.log(`Volume set to ${percent}%`);
-            } catch (error) {
-                console.error('Erro ao atualizar volume:', error);
-            }
-        }
-    }
-
-    // Função de throttle para limitar a frequência das chamadas
-    function throttle(func, limit) {
-        let lastFunc;
-        let lastRan;
-        return function(...args) {
-            const context = this;
-            if (!lastRan) {
-                func.apply(context, args);
-                lastRan = Date.now();
-            } else {
-                clearTimeout(lastFunc);
-                lastFunc = setTimeout(function() {
-                    if ((Date.now() - lastRan) >= limit) {
-                        func.apply(context, args);
-                        lastRan = Date.now();
-                    }
-                }, limit - (Date.now() - lastRan));
-            }
-        }
-    }
-
-    // Função de debounce para limitar a execução de funções
-    function debounce(func, delay) {
-        let timeout;
-        return function(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), delay);
-        }
-    }
-
-    // ------------------------------
-    // Controle de Seek
-    // ------------------------------
-
-    let isDraggingSeek = false;
-    let finalPercentSeek = 0;
-
-    // Iniciar arrasto do seek
-    handleMain.addEventListener('mousedown', function(e) {
+    // Manipuladores de Eventos
+    function handleMouseDown(e) {
         e.preventDefault();
         isDraggingSeek = true;
-    });
+    }
 
-    // Atualizar UI durante o arrasto do seek
-    document.addEventListener('mousemove', function(e) {
+    function handleMouseMove(e) {
         if (!isDraggingSeek) return;
 
         const rect = progressMain.getBoundingClientRect();
@@ -1036,109 +979,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateUI(handleMain, progressBarMain, percent);
         finalPercentSeek = percent;
-    });
+    }
 
-    // Finalizar arrasto do seek e realizar seek na API
-    document.addEventListener('mouseup', function() {
+    function handleMouseUp() {
         if (isDraggingSeek) {
             isDraggingSeek = false;
             performSeek(finalPercentSeek);
         }
-    });
+    }
 
-    // Permitir que o usuário clique na barra de seek para realizar seek imediato
-    progressMain.addEventListener('click', async (e) => {
+    async function handleClick(e) {
         const rect = e.currentTarget.getBoundingClientRect();
         const offsetX = e.clientX - rect.left;
         const percent = (offsetX / rect.width) * 100;
 
         updateUI(handleMain, progressBarMain, percent);
         await performSeek(percent);
-    });
-
-    // ------------------------------
-    // Controle de Volume
-    // ------------------------------
-
-    let isDraggingVolume = false;
-    const throttledVolumeUpdate = throttle(performVolumeUpdate, 100); // Limita a 10 chamadas por segundo
-
-    // Iniciar arrasto do volume
-    handleVolume.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        isDraggingVolume = true;
-    });
-
-    // Atualizar UI e enviar requisição de volume durante o arrasto
-    document.addEventListener('mousemove', function(e) {
-        if (!isDraggingVolume) return;
-
-        const rect = progressVolume.getBoundingClientRect();
-        let offsetX = e.clientX - rect.left;
-        offsetX = Math.max(0, Math.min(offsetX, rect.width));
-        const percent = (offsetX / rect.width) * 100;
-
-        // Atualiza a UI imediatamente
-        updateUI(handleVolume, volumeBar, percent);
-
-        // Envia a atualização de volume de forma throttled
-        throttledVolumeUpdate(percent);
-    });
-
-    // Finalizar arrasto do volume
-    document.addEventListener('mouseup', function() {
-        if (isDraggingVolume) {
-            isDraggingVolume = false;
-        }
-    });
-
-    // Permitir que o usuário clique na barra de volume para ajustar imediatamente
-    progressVolume.addEventListener('click', async (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const percent = (offsetX / rect.width) * 100;
-
-        updateUI(handleVolume, volumeBar, percent);
-        await performVolumeUpdate(percent);
-    });
-
-    // Manipulador para o botão de volume (Mute/Unmute)
-    if (btnVolume) {
-        btnVolume.addEventListener('click', debounce(async (e) => {
-            e.preventDefault();
-            const player = window.spotifyPlayer;
-
-            if (!player) {
-                alert('Player não está pronto.');
-                return;
-            }
-
-            try {
-                const currentVolume = await player.getVolume();
-                if (currentVolume > 0) {
-                    await player.setVolume(0); // Muta o som
-                    updateUI(handleVolume, volumeBar, 0);
-                    // Atualiza o ícone para volume mute
-                    btnVolume.querySelector('i').classList.remove('fa-volume-up');
-                    btnVolume.querySelector('i').classList.add('fa-volume-mute');
-                } else {
-                    await player.setVolume(50 / 100); // Define volume para 50%
-                    updateUI(handleVolume, volumeBar, 50);
-                    // Atualiza o ícone para volume up
-                    btnVolume.querySelector('i').classList.remove('fa-volume-mute');
-                    btnVolume.querySelector('i').classList.add('fa-volume-up');
-                }
-            } catch (error) {
-                console.error('Erro ao alternar Volume:', error);
-            }
-        }, 300)); // Debounce de 300ms
     }
 
-    // ------------------------------
-    // Atualização Periódica da Barra de Progresso
-    // ------------------------------
-
-    setInterval(async () => {
+    async function updateProgress() {
         const token = localStorage.getItem('access_token');
         const device_id = localStorage.getItem('device_id');
         if (!device_id) return;
@@ -1165,5 +1024,170 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Erro ao atualizar a barra de progresso:', error);
         }
-    }, 1000);
-});
+    }
+
+    // Inicialização do Módulo
+    function init() {
+        handleMain.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        progressMain.addEventListener('click', handleClick);
+
+        // Atualiza a barra de progresso a cada segundo
+        setInterval(updateProgress, 1000);
+    }
+
+    return {
+        init: init
+    };
+})();
+
+
+const VolumeModule = (function() {
+    // Seleção de Elementos
+    const handleVolume = document.getElementById('handle-volume');
+    const progressVolume = document.getElementById('progress-volume');
+    const volumeBar = document.getElementById('volume-bar');
+    const btnVolume = document.getElementById('btn-volume');
+
+    // Estado de Arrasto
+    let isDraggingVolume = false;
+
+    // Funções Utilitárias
+    function updateUI(handle, progressBar, percent) {
+        handle.style.left = `${percent}%`;
+        progressBar.style.width = `${percent}%`;
+    }
+
+    async function performVolumeUpdate(percent) {
+        const player = window.spotifyPlayer;
+        if (player) {
+            try {
+                const volume = percent / 100;
+                await player.setVolume(volume);
+                console.log(`Volume set to ${percent}%`);
+            } catch (error) {
+                console.error('Erro ao atualizar volume:', error);
+            }
+        }
+    }
+
+    // Throttle para limitar a frequência das chamadas de volume
+    function throttle(func, limit) {
+        let lastFunc;
+        let lastRan;
+        return function(...args) {
+            const context = this;
+            if (!lastRan) {
+                func.apply(context, args);
+                lastRan = Date.now();
+            } else {
+                clearTimeout(lastFunc);
+                lastFunc = setTimeout(function() {
+                    if ((Date.now() - lastRan) >= limit) {
+                        func.apply(context, args);
+                        lastRan = Date.now();
+                    }
+                }, limit - (Date.now() - lastRan));
+            }
+        }
+    }
+
+    // Função de debounce para o botão de volume
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        }
+    }
+
+    // Manipuladores de Eventos
+    function handleMouseDown(e) {
+        e.preventDefault();
+        isDraggingVolume = true;
+    }
+
+    function handleMouseMove(e) {
+        if (!isDraggingVolume) return;
+
+        const rect = progressVolume.getBoundingClientRect();
+        let offsetX = e.clientX - rect.left;
+        offsetX = Math.max(0, Math.min(offsetX, rect.width));
+        const percent = (offsetX / rect.width) * 100;
+
+        updateUI(handleVolume, volumeBar, percent);
+        throttledVolumeUpdate(percent);
+    }
+
+    function handleMouseUp() {
+        if (isDraggingVolume) {
+            isDraggingVolume = false;
+        }
+    }
+
+    async function handleClick(e) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const percent = (offsetX / rect.width) * 100;
+
+        updateUI(handleVolume, volumeBar, percent);
+        await performVolumeUpdate(percent);
+    }
+
+    async function toggleMute(e) {
+        e.preventDefault();
+        const player = window.spotifyPlayer;
+
+        if (!player) {
+            alert('Player não está pronto.');
+            return;
+        }
+
+        try {
+            const currentVolume = await player.getVolume();
+            if (currentVolume > 0) {
+                await player.setVolume(0); // Muta o som
+                updateUI(handleVolume, volumeBar, 0);
+                // Atualiza o ícone para volume mute
+                btnVolume.querySelector('i').classList.remove('fa-volume-up');
+                btnVolume.querySelector('i').classList.add('fa-volume-mute');
+            } else {
+                await player.setVolume(50 / 100); // Define volume para 50%
+                updateUI(handleVolume, volumeBar, 50);
+                // Atualiza o ícone para volume up
+                btnVolume.querySelector('i').classList.remove('fa-volume-mute');
+                btnVolume.querySelector('i').classList.add('fa-volume-up');
+            }
+        } catch (error) {
+            console.error('Erro ao alternar Volume:', error);
+        }
+    }
+
+    // Inicialização do Módulo
+    function init() {
+        const throttledVolumeMove = throttle(performVolumeUpdate, 100); // 100ms de limite
+        const debouncedToggleMute = debounce(toggleMute, 300); // 300ms de delay
+
+        // Eventos de arrasto de volume
+        handleVolume.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        progressVolume.addEventListener('click', handleClick);
+
+        // Evento de clique no botão de volume
+        if (btnVolume) {
+            btnVolume.addEventListener('click', debouncedToggleMute);
+        }
+
+        // Atualiza o volume a cada mudança
+        window.throttledVolumeUpdate = throttledVolumeMove; // Expondo para uso interno
+    }
+
+    // Throttled Volume Update
+    const throttledVolumeUpdate = throttle(performVolumeUpdate, 100); // Limita a 10 chamadas por segundo
+
+    return {
+        init: init
+    };
+})();
