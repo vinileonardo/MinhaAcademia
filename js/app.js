@@ -413,3 +413,10 @@ function zerarDia(dia) {
     exibirExercicios(dia);
   }
 }
+
+// Registro do Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(reg => console.log('Service Worker registrado', reg))
+    .catch(err => console.warn('Erro ao registrar o Service Worker', err));
+}
