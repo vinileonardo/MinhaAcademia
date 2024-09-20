@@ -801,125 +801,6 @@ function msToTime(duration) {
 }
 
 /* 
-  Função para tornar elementos arrastáveis (bolinhas nas barras de progresso e volume).
-  Permite que o usuário interaja diretamente com as barras.
-*/
-document.addEventListener('DOMContentLoaded', function() {
-    function makeDraggable(handle, progressBar, callback) {
-        let isDragging = false;
-
-        handle.addEventListener('mousedown', function(e) {
-            e.preventDefault();
-            isDragging = true;
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-
-            const rect = progressBar.getBoundingClientRect();
-            let offsetX = e.clientX - rect.left;
-
-            // Limitar o offsetX entre 0 e a largura do progress bar
-            offsetX = Math.max(0, Math.min(offsetX, rect.width));
-
-            // Calcular a porcentagem
-            const percent = (offsetX / rect.width) * 100;
-
-            // Atualizar a posição da bolinha
-            handle.style.left = percent + '%';
-
-            // Atualizar a largura da barra de progresso
-            const progress = progressBar.querySelector('.progress-bar');
-            progress.style.width = percent + '%';
-
-            // Chamar o callback com a porcentagem
-            if (callback) callback(percent);
-        });
-
-        document.addEventListener('mouseup', function() {
-            if (isDragging) {
-                isDragging = false;
-            }
-        });
-    }
-
-    // Selecionar os elementos da barra principal
-    const handleMain = document.getElementById('handle-main');
-    const progressMain = document.getElementById('progress-main');
-
-    // Selecionar os elementos da barra de volume
-    const handleVolume = document.getElementById('handle-volume');
-    const progressVolume = document.getElementById('progress-volume');
-
-    // Tornar as bolinhas arrastáveis
-    makeDraggable(handleMain, progressMain, async function(percent) {
-        console.log('Progresso da Música:', percent + '%');
-        // Implementar a funcionalidade de seek
-        const player = window.spotifyPlayer;
-        if (player) {
-            const token = localStorage.getItem('access_token');
-            const device_id = localStorage.getItem('device_id');
-
-            try {
-                const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                const data = await response.json();
-                if (data && data.item && data.item.duration_ms) {
-                    const position_ms = (percent / 100) * data.item.duration_ms;
-                    await player.seek(position_ms);
-                    console.log(`Seek para ${position_ms} ms`);
-                }
-            } catch (error) {
-                console.error('Erro ao realizar seek:', error);
-            }
-        }
-    });
-
-    makeDraggable(handleVolume, progressVolume, function(percent) {
-        console.log('Volume:', percent + '%');
-        // Atualizar o volume conforme a porcentagem
-        const player = window.spotifyPlayer;
-        if (player) {
-            player.setVolume(percent / 100).then(() => {
-                console.log(`Volume set to ${percent}%`);
-            });
-        }
-    });
-
-    // Event Listener para a barra de progresso
-    document.getElementById('progress-main').addEventListener('click', async (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const percent = (offsetX / rect.width) * 100;
-
-        const player = window.spotifyPlayer;
-        if (player) {
-            const token = localStorage.getItem('access_token');
-            const device_id = localStorage.getItem('device_id');
-
-            try {
-                const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                const data = await response.json();
-                if (data && data.item && data.item.duration_ms) {
-                    const position_ms = (percent / 100) * data.item.duration_ms;
-                    await player.seek(position_ms);
-                    console.log(`Seek para ${position_ms} ms`);
-                }
-            } catch (error) {
-                console.error('Erro ao realizar seek:', error);
-            }
-        }
-    });
-});
-
-/* 
   Função para salvar a música atual nos favoritos do usuário.
   Utiliza a API do Spotify para adicionar a faixa à biblioteca.
 */
@@ -974,128 +855,6 @@ function getCurrentTrackId() {
 }
 
 
-/* 
-  Função para implementar a barra de seek utilizando o método Spotify.Player#seek.
-  Atualiza a posição da reprodução conforme o usuário interage com o slider.
-*/
-document.addEventListener('DOMContentLoaded', () => {
-    const btnNext = document.getElementById('btn-next');
-    const btnPrev = document.getElementById('btn-prev');
-    const btnVolume = document.getElementById('btn-volume');
-    const volumeBar = document.getElementById('volume-bar');
-    const progressBar = document.getElementById('progress-bar');
-    const currentTimeEl = document.getElementById('current-time');
-    const totalDurationEl = document.getElementById('total-duration');
-    const handleMain = document.getElementById('handle-main');
-    const handleVolume = document.getElementById('handle-volume');
-
-    /* 
-      Event Listener para o botão Próximo
-      Avança para a próxima faixa quando clicado.
-    */
-    if (btnNext) {
-        btnNext.addEventListener('click', debounce(async (e) => {
-            e.preventDefault();
-            await nextTrack();
-        }, 300)); // Debounce de 300ms
-    }
-
-    /* 
-      Event Listener para o botão Anterior
-      Retrocede para a faixa anterior quando clicado.
-    */
-    if (btnPrev) {
-        btnPrev.addEventListener('click', debounce(async (e) => {
-            e.preventDefault();
-            await previousTrack();
-        }, 300)); // Debounce de 300ms
-    }
-
-    /* 
-      Event Listener para o botão de Volume
-      Alterna entre mute e ativar o som, além de mudar o ícone.
-    */
-    if (btnVolume) {
-        btnVolume.addEventListener('click', debounce(async (e) => {
-            e.preventDefault();
-            const token = localStorage.getItem('access_token');
-            const player = window.spotifyPlayer;
-
-            if (!player) {
-                alert('Player não está pronto.');
-                return;
-            }
-
-            try {
-                const currentVolume = await player.getVolume();
-                if (currentVolume > 0) {
-                    await player.setVolume(0); // Muta o som
-                    // Atualiza o ícone para volume mute
-                    btnVolume.querySelector('i').classList.remove('fa-volume-up');
-                    btnVolume.querySelector('i').classList.add('fa-volume-mute');
-                } else {
-                    await player.setVolume(0.5); // Define volume para 50%
-                    // Atualiza o ícone para volume up
-                    btnVolume.querySelector('i').classList.remove('fa-volume-mute');
-                    btnVolume.querySelector('i').classList.add('fa-volume-up');
-                }
-            } catch (error) {
-                console.error('Erro ao alternar Volume:', error);
-            }
-        }, 300)); // Debounce de 300ms
-    }
-
-    /* 
-      Event Listener para a barra de volume
-      Atualiza o volume do player conforme a interação do usuário.
-    */
-    if (volumeBar) {
-        volumeBar.addEventListener('input', debounce(async (e) => {
-            const volume = parseInt(e.target.value) / 100;
-            const player = window.spotifyPlayer;
-            if (player) {
-                await player.setVolume(volume).then(() => {
-                    console.log(`Volume set to ${volume * 100}%`);
-                });
-            }
-        }, 300)); // Debounce de 300ms
-    }
-
-    /* 
-      Atualiza a barra de progresso e o tempo a cada segundo.
-      Mantém a sincronização com o estado atual da reprodução.
-    */
-    setInterval(async () => {
-        const token = localStorage.getItem('access_token');
-        const device_id = localStorage.getItem('device_id');
-        if (!device_id) return;
-
-        try {
-            const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.status === 200) {
-                const data = await response.json();
-                if (data && data.item && data.progress_ms !== undefined && data.item.duration_ms !== undefined) {
-                    const progress = (data.progress_ms / data.item.duration_ms) * 100;
-                    progressBar.value = progress;
-                    progressBar.style.width = `${progress}%`;
-                    handleMain.style.left = `${progress}%`;
-
-                    const currentTime = msToTime(data.progress_ms);
-                    const totalDuration = msToTime(data.item.duration_ms);
-                    currentTimeEl.textContent = currentTime;
-                    totalDurationEl.textContent = totalDuration;
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao atualizar a barra de progresso:', error);
-        }
-    }, 1000);
-});
 
 /* 
   Função debounce
@@ -1111,95 +870,7 @@ function debounce(func, delay) {
     }
 }
 
-/* 
-  Função para tornar elementos arrastáveis (bolinhas nas barras de progresso e volume).
-  Permite que o usuário interaja diretamente com as barras.
-*/
-document.addEventListener('DOMContentLoaded', function() {
-    function makeDraggable(handle, progressBar, callback) {
-        let isDragging = false;
 
-        handle.addEventListener('mousedown', function(e) {
-            e.preventDefault();
-            isDragging = true;
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-
-            const rect = progressBar.getBoundingClientRect();
-            let offsetX = e.clientX - rect.left;
-
-            // Limitar o offsetX entre 0 e a largura do progress bar
-            offsetX = Math.max(0, Math.min(offsetX, rect.width));
-
-            // Calcular a porcentagem
-            const percent = (offsetX / rect.width) * 100;
-
-            // Atualizar a posição da bolinha
-            handle.style.left = percent + '%';
-
-            // Atualizar a largura da barra de progresso
-            const progress = progressBar.querySelector('.progress-bar');
-            progress.style.width = percent + '%';
-
-            // Chamar o callback com a porcentagem
-            if (callback) callback(percent);
-        });
-
-        document.addEventListener('mouseup', function() {
-            if (isDragging) {
-                isDragging = false;
-            }
-        });
-    }
-
-    // Selecionar os elementos da barra principal
-    const handleMain = document.getElementById('handle-main');
-    const progressMain = document.getElementById('progress-main');
-
-    // Selecionar os elementos da barra de volume
-    const handleVolume = document.getElementById('handle-volume');
-    const progressVolume = document.getElementById('progress-volume');
-
-    // Tornar as bolinhas arrastáveis
-    makeDraggable(handleMain, progressMain, async function(percent) {
-        console.log('Progresso da Música:', percent + '%');
-        // Implementar a funcionalidade de seek
-        const player = window.spotifyPlayer;
-        if (player) {
-            const token = localStorage.getItem('access_token');
-            const device_id = localStorage.getItem('device_id');
-
-            try {
-                const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                const data = await response.json();
-                if (data && data.item && data.item.duration_ms) {
-                    const position_ms = (percent / 100) * data.item.duration_ms;
-                    await player.seek(position_ms);
-                    console.log(`Seek para ${position_ms} ms`);
-                }
-            } catch (error) {
-                console.error('Erro ao realizar seek:', error);
-            }
-        }
-    });
-
-    makeDraggable(handleVolume, progressVolume, function(percent) {
-        console.log('Volume:', percent + '%');
-        // Atualizar o volume conforme a porcentagem
-        const player = window.spotifyPlayer;
-        if (player) {
-            player.setVolume(percent / 100).then(() => {
-                console.log(`Volume set to ${percent}%`);
-            });
-        }
-    });
-});
 
 /* 
   Função para mostrar o modal de confirmação
@@ -1232,3 +903,123 @@ function mostrarConfirmacao() {
 
     $('#modalConfirmacao').modal('show');
 }
+
+
+
+
+/*   SEEK     */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Seleciona os elementos necessários
+    const handleMain = document.getElementById('handle-main');
+    const progressMain = document.getElementById('progress-main');
+    const progressBar = document.getElementById('progress-bar');
+    const currentTimeEl = document.getElementById('current-time');
+    const totalDurationEl = document.getElementById('total-duration');
+
+    let isDragging = false;
+    let finalPercent = 0;
+
+    // Função para converter milissegundos em formato de tempo (m:ss)
+    function msToTime(duration) {
+        const seconds = Math.floor((duration / 1000) % 60);
+        const minutes = Math.floor((duration / (1000 * 60)) % 60);
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+
+    // Atualiza a posição do handle e a largura da barra de progresso
+    function updateUI(percent) {
+        handleMain.style.left = `${percent}%`;
+        progressBar.style.width = `${percent}%`;
+    }
+
+    // Realiza o seek na API do Spotify
+    async function performSeek(percent) {
+        const player = window.spotifyPlayer;
+        if (player) {
+            const token = localStorage.getItem('access_token');
+            try {
+                const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                if (data && data.item && data.item.duration_ms) {
+                    const position_ms = (percent / 100) * data.item.duration_ms;
+                    await player.seek(position_ms);
+                    console.log(`Seek para ${position_ms} ms`);
+                }
+            } catch (error) {
+                console.error('Erro ao realizar seek:', error);
+            }
+        }
+    }
+
+    // Manipulador para iniciar o arrasto
+    handleMain.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        isDragging = true;
+    });
+
+    // Manipulador para atualizar a UI durante o arrasto
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+
+        const rect = progressMain.getBoundingClientRect();
+        let offsetX = e.clientX - rect.left;
+        offsetX = Math.max(0, Math.min(offsetX, rect.width));
+        const percent = (offsetX / rect.width) * 100;
+
+        updateUI(percent);
+        finalPercent = percent;
+    });
+
+    // Manipulador para finalizar o arrasto e realizar o seek
+    document.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            performSeek(finalPercent);
+        }
+    });
+
+    // Manipulador para cliques na barra de progresso
+    progressMain.addEventListener('click', async (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const percent = (offsetX / rect.width) * 100;
+
+        updateUI(percent);
+        await performSeek(percent);
+    });
+
+    // Atualiza a barra de progresso e o tempo a cada segundo
+    setInterval(async () => {
+        const token = localStorage.getItem('access_token');
+        const device_id = localStorage.getItem('device_id');
+        if (!device_id) return;
+
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                if (data && data.item && data.progress_ms !== undefined && data.item.duration_ms !== undefined) {
+                    const progress = (data.progress_ms / data.item.duration_ms) * 100;
+                    updateUI(progress);
+
+                    const currentTime = msToTime(data.progress_ms);
+                    const totalDuration = msToTime(data.item.duration_ms);
+                    currentTimeEl.textContent = currentTime;
+                    totalDurationEl.textContent = totalDuration;
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar a barra de progresso:', error);
+        }
+    }, 1000);
+});
