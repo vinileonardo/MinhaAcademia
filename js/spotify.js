@@ -908,32 +908,49 @@ function mostrarConfirmacao() {
 
 
 /*   SEEK     */
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Seleciona os elementos necessários
+    // Seleção de Elementos
     const handleMain = document.getElementById('handle-main');
     const progressMain = document.getElementById('progress-main');
-    const progressBar = document.getElementById('progress-bar');
+    const progressBarMain = document.getElementById('progress-bar');
     const currentTimeEl = document.getElementById('current-time');
     const totalDurationEl = document.getElementById('total-duration');
 
-    let isDragging = false;
-    let finalPercent = 0;
+    const handleVolume = document.getElementById('handle-volume');
+    const progressVolume = document.getElementById('progress-volume');
+    const volumeBar = document.getElementById('volume-bar');
+    const btnVolume = document.getElementById('btn-volume');
 
-    // Função para converter milissegundos em formato de tempo (m:ss)
+    // Estado de Arrasto
+    let isDraggingSeek = false;
+    let finalPercentSeek = 0;
+
+    // Função de Throttle para Limitar a Frequência das Requisições de Volume
+    function throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                func.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        }
+    }
+
+    // Função para Converter Milissegundos em Formato de Tempo (m:ss)
     function msToTime(duration) {
         const seconds = Math.floor((duration / 1000) % 60);
         const minutes = Math.floor((duration / (1000 * 60)) % 60);
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
 
-    // Atualiza a posição do handle e a largura da barra de progresso
-    function updateUI(percent) {
-        handleMain.style.left = `${percent}%`;
+    // Função para Atualizar a UI
+    function updateUI(handle, progressBar, percent) {
+        handle.style.left = `${percent}%`;
         progressBar.style.width = `${percent}%`;
     }
 
-    // Realiza o seek na API do Spotify
+    // Função para Realizar Seek na API do Spotify
     async function performSeek(percent) {
         const player = window.spotifyPlayer;
         if (player) {
@@ -956,44 +973,143 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Manipulador para iniciar o arrasto
+    // Função para Atualizar o Volume na API do Spotify
+    async function performVolumeUpdate(percent) {
+        const player = window.spotifyPlayer;
+        if (player) {
+            try {
+                const volume = percent / 100;
+                await player.setVolume(volume);
+                console.log(`Volume set to ${percent}%`);
+            } catch (error) {
+                console.error('Erro ao atualizar volume:', error);
+            }
+        }
+    }
+
+    // Manipuladores para o Controle de Seek
+
+    // Iniciar Arrasto do Seek
     handleMain.addEventListener('mousedown', function(e) {
         e.preventDefault();
-        isDragging = true;
+        isDraggingSeek = true;
     });
 
-    // Manipulador para atualizar a UI durante o arrasto
+    // Atualizar UI durante o Arrasto do Seek
     document.addEventListener('mousemove', function(e) {
-        if (!isDragging) return;
+        if (!isDraggingSeek) return;
 
         const rect = progressMain.getBoundingClientRect();
         let offsetX = e.clientX - rect.left;
         offsetX = Math.max(0, Math.min(offsetX, rect.width));
         const percent = (offsetX / rect.width) * 100;
 
-        updateUI(percent);
-        finalPercent = percent;
+        updateUI(handleMain, progressBarMain, percent);
+        finalPercentSeek = percent;
     });
 
-    // Manipulador para finalizar o arrasto e realizar o seek
+    // Finalizar Arrasto do Seek e Realizar Seek na API
     document.addEventListener('mouseup', function() {
-        if (isDragging) {
-            isDragging = false;
-            performSeek(finalPercent);
+        if (isDraggingSeek) {
+            isDraggingSeek = false;
+            performSeek(finalPercentSeek);
         }
     });
 
-    // Manipulador para cliques na barra de progresso
+    // Manipulador para Cliques na Barra de Seek
     progressMain.addEventListener('click', async (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const offsetX = e.clientX - rect.left;
         const percent = (offsetX / rect.width) * 100;
 
-        updateUI(percent);
+        updateUI(handleMain, progressBarMain, percent);
         await performSeek(percent);
     });
 
-    // Atualiza a barra de progresso e o tempo a cada segundo
+    // Manipuladores para o Controle de Volume
+
+    // Iniciar Arrasto do Volume
+    handleVolume.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        isDraggingVolume = true;
+    });
+
+    let isDraggingVolume = false;
+
+    // Atualizar UI e Volume durante o Arrasto do Volume com Throttle
+    document.addEventListener('mousemove', throttle(function(e) {
+        if (!isDraggingVolume) return;
+
+        const rect = progressVolume.getBoundingClientRect();
+        let offsetX = e.clientX - rect.left;
+        offsetX = Math.max(0, Math.min(offsetX, rect.width));
+        const percent = (offsetX / rect.width) * 100;
+
+        updateUI(handleVolume, volumeBar, percent);
+        performVolumeUpdate(percent);
+    }, 100)); // Throttle para 100ms
+
+    // Finalizar Arrasto do Volume
+    document.addEventListener('mouseup', function() {
+        if (isDraggingVolume) {
+            isDraggingVolume = false;
+        }
+    });
+
+    // Manipulador para Cliques na Barra de Volume
+    progressVolume.addEventListener('click', async (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const percent = (offsetX / rect.width) * 100;
+
+        updateUI(handleVolume, volumeBar, percent);
+        await performVolumeUpdate(percent);
+    });
+
+    // Manipulador para o Botão de Volume (Mute/Unmute)
+    if (btnVolume) {
+        btnVolume.addEventListener('click', debounce(async (e) => {
+            e.preventDefault();
+            const player = window.spotifyPlayer;
+
+            if (!player) {
+                alert('Player não está pronto.');
+                return;
+            }
+
+            try {
+                const currentVolume = await player.getVolume();
+                if (currentVolume > 0) {
+                    await player.setVolume(0); // Muta o som
+                    // Atualiza o handle e a barra de volume
+                    updateUI(handleVolume, volumeBar, 0);
+                    // Atualiza o ícone para volume mute
+                    btnVolume.querySelector('i').classList.remove('fa-volume-up');
+                    btnVolume.querySelector('i').classList.add('fa-volume-mute');
+                } else {
+                    await player.setVolume(50 / 100); // Define volume para 50%
+                    // Atualiza o handle e a barra de volume
+                    updateUI(handleVolume, volumeBar, 50);
+                    // Atualiza o ícone para volume up
+                    btnVolume.querySelector('i').classList.remove('fa-volume-mute');
+                    btnVolume.querySelector('i').classList.add('fa-volume-up');
+                }
+            } catch (error) {
+                console.error('Erro ao alternar Volume:', error);
+            }
+        }, 300)); // Debounce de 300ms
+    }
+
+    // Função de Debounce para Limitar a Frequência de Execução
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        }
+    }
+
+    // Atualiza a Barra de Progresso e o Tempo a Cada Segundo
     setInterval(async () => {
         const token = localStorage.getItem('access_token');
         const device_id = localStorage.getItem('device_id');
@@ -1010,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 if (data && data.item && data.progress_ms !== undefined && data.item.duration_ms !== undefined) {
                     const progress = (data.progress_ms / data.item.duration_ms) * 100;
-                    updateUI(progress);
+                    updateUI(handleMain, progressBarMain, progress);
 
                     const currentTime = msToTime(data.progress_ms);
                     const totalDuration = msToTime(data.item.duration_ms);
