@@ -1,6 +1,7 @@
+// spotify.js
+
 // Variáveis de configuração
 const clientId = 'bf525d89f2bb4471bba89160674e9975'; // Substitua pelo seu Client ID
-// Adicionando barra no final para garantir correspondência exata
 const redirectUri = 'https://vinileonardo.github.io/MinhaAcademia/'; // Atualizado com barra no final
 const scopes = [
   'streaming',
@@ -8,20 +9,18 @@ const scopes = [
   'user-read-private',
   'user-modify-playback-state',
   'user-read-playback-state',
-  'user-read-recently-played', // Adicionado para acessar a última música reproduzida
+  'user-read-recently-played',
 ];
 
 // Funções de PKCE
 function generateCodeVerifier(length = 128) {
-  // O comprimento máximo é 128 caracteres
   const array = new Uint8Array(Math.ceil(length * 3 / 4));
   window.crypto.getRandomValues(array);
   let codeVerifier = btoa(String.fromCharCode(...array))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
-  
-  // Trunca para o comprimento desejado, se necessário
+
   if (codeVerifier.length > length) {
     codeVerifier = codeVerifier.substring(0, length);
   }
@@ -49,7 +48,6 @@ function generateRandomString(length) {
   for (let i = 0; i < array.length; i++) {
     randomString += String.fromCharCode(array[i]);
   }
-  // Base64url encoding
   randomString = btoa(randomString)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
@@ -139,11 +137,9 @@ async function exchangeCodeForToken(code) {
     if (data.access_token) {
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('refresh_token', data.refresh_token);
-      // Opcional: Armazene o tempo de expiração
       const expiresAt = new Date().getTime() + data.expires_in * 1000;
       localStorage.setItem('expires_at', expiresAt);
       console.log('Tokens armazenados no localStorage.');
-      // Limpa os parâmetros da URL
       window.history.replaceState({}, document.title, redirectUri);
     } else {
       console.error('Erro ao obter o token:', data);
@@ -189,13 +185,12 @@ async function getCurrentlyPlaying() {
       }
     });
     if (response.status === 204 || response.status > 400) {
-      // No content or error
       return null;
     }
     const data = await response.json();
     console.log('Currently Playing:', data);
     if (data && data.item) {
-      return data.item; // Track object
+      return data.item;
     }
     return null;
   } catch (error) {
@@ -214,13 +209,12 @@ async function getLastPlayed() {
       }
     });
     if (response.status > 400) {
-      // Error
       return null;
     }
     const data = await response.json();
     console.log('Last Played:', data);
     if (data && data.items && data.items.length > 0) {
-      return data.items[0].track; // Track object
+      return data.items[0].track;
     }
     return null;
   } catch (error) {
@@ -229,26 +223,13 @@ async function getLastPlayed() {
   }
 }
 
-// Função para definir o player para uma música específica
-function setPlayer(track) {
-  if (!track) {
-    console.log('Nenhuma música para reproduzir.');
-    return;
-  }
-  const embedUrl = `https://open.spotify.com/embed/track/${track.id}`;
-  const playerContainer = document.getElementById('player-container');
-  if (playerContainer) {
-    // Verifica se o iframe atual já está reproduzindo essa música
-    const currentIframe = playerContainer.querySelector('iframe');
-    if (currentIframe && currentIframe.src === embedUrl) {
-      console.log('A música já está sendo reproduzida no player.');
-      return;
-    }
-    // Atualiza o iframe
-    playerContainer.innerHTML = `
-      <iframe src="${embedUrl}" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-    `;
-    console.log(`Player atualizado para a música: ${track.name} de ${track.artists.map(artist => artist.name).join(', ')}`);
+// Função para atualizar a interface do player
+function updatePlayerUI(track) {
+  const currentTrackElement = document.getElementById('current-track');
+  if (track) {
+    currentTrackElement.textContent = `Reproduzindo: ${track.name} de ${track.artists.map(artist => artist.name).join(', ')}`;
+  } else {
+    currentTrackElement.textContent = 'Nenhuma música reproduzindo.';
   }
 }
 
@@ -257,21 +238,159 @@ async function synchronizePlayer() {
   console.log('Sincronizando o player...');
   const currentTrack = await getCurrentlyPlaying();
   if (currentTrack) {
-    setPlayer(currentTrack);
+    updatePlayerUI(currentTrack);
   } else {
     const lastTrack = await getLastPlayed();
     if (lastTrack) {
-      setPlayer(lastTrack);
+      updatePlayerUI(lastTrack);
     } else {
-      console.log('Nenhuma música atualmente tocando nem músicas recentemente tocadas.');
+      updatePlayerUI(null);
     }
   }
 }
 
-// Configura a sincronização do player com intervalos regulares
+// Função para iniciar a sincronização do player
 function startPlayerSync() {
-  synchronizePlayer(); // Sincronização inicial
+  synchronizePlayer();
   setInterval(synchronizePlayer, 30000); // Sincroniza a cada 30 segundos
+}
+
+// Funções de controle de reprodução
+async function play() {
+  const token = localStorage.getItem('access_token');
+  const device_id = localStorage.getItem('device_id');
+  if (!device_id) {
+    alert('Player não está pronto.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
+      method: 'PUT',
+      body: JSON.stringify({}),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (response.status === 204) {
+      console.log('Reprodução iniciada.');
+    } else {
+      const error = await response.json();
+      console.error('Erro ao iniciar reprodução:', error);
+    }
+  } catch (error) {
+    console.error('Erro ao iniciar reprodução:', error);
+  }
+}
+
+async function pause() {
+  const token = localStorage.getItem('access_token');
+  const device_id = localStorage.getItem('device_id');
+  if (!device_id) {
+    alert('Player não está pronto.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${device_id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (response.status === 204) {
+      console.log('Reprodução pausada.');
+    } else {
+      const error = await response.json();
+      console.error('Erro ao pausar reprodução:', error);
+    }
+  } catch (error) {
+    console.error('Erro ao pausar reprodução:', error);
+  }
+}
+
+async function nextTrack() {
+  const token = localStorage.getItem('access_token');
+  const device_id = localStorage.getItem('device_id');
+  if (!device_id) {
+    alert('Player não está pronto.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/next?device_id=${device_id}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (response.status === 204) {
+      console.log('Próxima faixa acionada.');
+    } else {
+      const error = await response.json();
+      console.error('Erro ao avançar faixa:', error);
+    }
+  } catch (error) {
+    console.error('Erro ao avançar faixa:', error);
+  }
+}
+
+async function previousTrack() {
+  const token = localStorage.getItem('access_token');
+  const device_id = localStorage.getItem('device_id');
+  if (!device_id) {
+    alert('Player não está pronto.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/previous?device_id=${device_id}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (response.status === 204) {
+      console.log('Faixa anterior acionada.');
+    } else {
+      const error = await response.json();
+      console.error('Erro ao retroceder faixa:', error);
+    }
+  } catch (error) {
+    console.error('Erro ao retroceder faixa:', error);
+  }
+}
+
+// Função para transferir a reprodução para o SDK Player
+async function transferPlaybackHere(device_id) {
+  const token = localStorage.getItem('access_token');
+  try {
+    const response = await fetch('https://api.spotify.com/v1/me/player', {
+      method: 'PUT',
+      body: JSON.stringify({
+        "device_ids": [ device_id ],
+        "play": false,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (response.status === 204) {
+      console.log('Transferência de reprodução bem-sucedida.');
+    } else {
+      const error = await response.json();
+      console.error('Erro ao transferir reprodução:', error);
+    }
+  } catch (error) {
+    console.error('Erro ao transferir reprodução:', error);
+  }
 }
 
 // Inicializa o fluxo após carregar a página
@@ -284,12 +403,12 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     const token = localStorage.getItem('access_token');
     console.log('Token encontrado no localStorage:', token);
     const player = new Spotify.Player({
-      name: 'Web Player',
+      name: 'Minha Academia Player',
       getOAuthToken: cb => { cb(token); },
       volume: 0.5
     });
 
-    // Conecte-se ao player!
+    // Conecte-se ao player
     player.connect().then(success => {
       if (success) {
         console.log('Conectado ao Spotify Player.');
@@ -301,29 +420,30 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     // Eventos do player
     player.addListener('ready', ({ device_id }) => {
       console.log('Player está pronto com o ID:', device_id);
-      // Armazene o device_id para uso futuro
       localStorage.setItem('device_id', device_id);
+      // Transferir a reprodução para este player
+      transferPlaybackHere(device_id);
     });
 
     player.addListener('not_ready', ({ device_id }) => {
       console.log('Player não está pronto com o ID:', device_id);
     });
 
-    // Eventos para sincronização quando a música muda
     player.addListener('player_state_changed', state => {
       if (!state) {
         return;
       }
       const currentTrack = state.track_window.current_track;
       console.log('Música atual no player:', currentTrack);
-      setPlayer(currentTrack);
+      updatePlayerUI(currentTrack);
     });
 
     // Armazene o player para uso posterior
     window.spotifyPlayer = player;
 
     // Iniciar a sincronização do player
-    startPlayerSync();
+    synchronizePlayer();
+    setInterval(synchronizePlayer, 30000); // Sincroniza a cada 30 segundos
   } else {
     console.log('Usuário não está autenticado.');
   }
@@ -339,7 +459,6 @@ function showPlayer() {
 // Função para ocultar o player
 function hidePlayer() {
   console.log('Ocultando o player do Spotify.');
-  document.getElementById('player-container').innerHTML = '';
   document.getElementById('spotify-player').style.display = 'none';
 }
 
@@ -360,16 +479,26 @@ document.getElementById('loginButton').addEventListener('click', () => {
   initiateAuth();
 });
 
-// Atualiza o player para usar o Web Playback SDK
-function initializePlayer() {
-  console.log('Inicializando o player do Spotify.');
-  const playerContainer = document.getElementById('player-container');
-  playerContainer.innerHTML = ''; // Limpa o iframe anterior
+// Adiciona event listeners aos botões de controle após o DOM ser carregado
+document.addEventListener('DOMContentLoaded', () => {
+  const btnPlay = document.getElementById('btn-play');
+  const btnPause = document.getElementById('btn-pause');
+  const btnNext = document.getElementById('btn-next');
+  const btnPrev = document.getElementById('btn-prev');
 
-  // Adiciona controles personalizados ou usa o SDK
-  if (window.spotifyPlayer) {
-    console.log('Player do Spotify está disponível.');
-    // Exemplo: Reproduzir uma música específica
-    // play('spotify:track:SEU_TRACK_URI');
+  if (btnPlay) {
+    btnPlay.addEventListener('click', play);
   }
-}
+
+  if (btnPause) {
+    btnPause.addEventListener('click', pause);
+  }
+
+  if (btnNext) {
+    btnNext.addEventListener('click', nextTrack);
+  }
+
+  if (btnPrev) {
+    btnPrev.addEventListener('click', previousTrack);
+  }
+});
