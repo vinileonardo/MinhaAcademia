@@ -278,12 +278,23 @@
 
     // Funções de PKCE
     function generateCodeVerifier(length = 128) {
-      const array = new Uint32Array(length);
+      // O comprimento máximo é 128 caracteres
+      const array = new Uint8Array(Math.ceil(length * 3 / 4));
       window.crypto.getRandomValues(array);
-      const codeVerifier = Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
+      let codeVerifier = btoa(String.fromCharCode(...array))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+      
+      // Trunca para o comprimento desejado, se necessário
+      if (codeVerifier.length > length) {
+        codeVerifier = codeVerifier.substring(0, length);
+      }
+
       console.log('Generated Code Verifier:', codeVerifier);
       return codeVerifier;
     }
+
 
     async function generateCodeChallenge(codeVerifier) {
       const encoder = new TextEncoder();
@@ -374,6 +385,12 @@
 
         console.log('Resposta da API do Spotify:', response);
 
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('Erro na resposta da API:', errorData);
+          return;
+        }
+
         const data = await response.json();
         console.log('Dados recebidos da API do Spotify:', data);
 
@@ -393,6 +410,7 @@
         console.error('Erro na requisição do token:', error);
       }
     }
+
 
     // Função para verificar se o usuário está autenticado
     function isAuthenticated() {
