@@ -1,13 +1,14 @@
 // Variáveis de configuração
 const clientId = 'bf525d89f2bb4471bba89160674e9975'; // Substitua pelo seu Client ID
-const redirectUri = window.location.origin + window.location.pathname;
+// Adicionando barra no final para garantir correspondência exata
+const redirectUri = 'https://vinileonardo.github.io/MinhaAcademia/'; // Atualizado com barra no final
 const scopes = [
   'streaming',
   'user-read-email',
   'user-read-private',
   'user-modify-playback-state',
   'user-read-playback-state',
-  // Adicione outros escopos conforme necessário
+  'user-read-recently-played', // Adicionado para acessar a última música reproduzida
 ];
 
 // Funções de PKCE
@@ -29,23 +30,30 @@ function generateCodeVerifier(length = 128) {
   return codeVerifier;
 }
 
-
 async function generateCodeChallenge(codeVerifier) {
   const encoder = new TextEncoder();
   const data = encoder.encode(codeVerifier);
   const digest = await window.crypto.subtle.digest('SHA-256', data);
-  const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+  let base64String = btoa(String.fromCharCode(...new Uint8Array(digest)))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
-  console.log('Generated Code Challenge:', codeChallenge);
-  return codeChallenge;
+  console.log('Generated Code Challenge:', base64String);
+  return base64String;
 }
 
 function generateRandomString(length) {
-  const array = new Uint32Array(length);
+  const array = new Uint8Array(length);
   window.crypto.getRandomValues(array);
-  const randomString = Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
+  let randomString = '';
+  for (let i = 0; i < array.length; i++) {
+    randomString += String.fromCharCode(array[i]);
+  }
+  // Base64url encoding
+  randomString = btoa(randomString)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
   console.log('Generated Random String (State):', randomString);
   return randomString;
 }
@@ -145,7 +153,6 @@ async function exchangeCodeForToken(code) {
   }
 }
 
-
 // Função para verificar se o usuário está autenticado
 function isAuthenticated() {
   const token = localStorage.getItem('access_token');
@@ -170,6 +177,101 @@ async function handleRedirect() {
   } else {
     console.log('Nenhum código de autorização encontrado na URL.');
   }
+}
+
+// Função para obter a música atualmente tocando
+async function getCurrentlyPlaying() {
+  const token = localStorage.getItem('access_token');
+  try {
+    const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (response.status === 204 || response.status > 400) {
+      // No content or error
+      return null;
+    }
+    const data = await response.json();
+    console.log('Currently Playing:', data);
+    if (data && data.item) {
+      return data.item; // Track object
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao obter a música atualmente tocando:', error);
+    return null;
+  }
+}
+
+// Função para obter a última música reproduzida
+async function getLastPlayed() {
+  const token = localStorage.getItem('access_token');
+  try {
+    const response = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (response.status > 400) {
+      // Error
+      return null;
+    }
+    const data = await response.json();
+    console.log('Last Played:', data);
+    if (data && data.items && data.items.length > 0) {
+      return data.items[0].track; // Track object
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao obter a última música tocada:', error);
+    return null;
+  }
+}
+
+// Função para definir o player para uma música específica
+function setPlayer(track) {
+  if (!track) {
+    console.log('Nenhuma música para reproduzir.');
+    return;
+  }
+  const embedUrl = `https://open.spotify.com/embed/track/${track.id}`;
+  const playerContainer = document.getElementById('player-container');
+  if (playerContainer) {
+    // Verifica se o iframe atual já está reproduzindo essa música
+    const currentIframe = playerContainer.querySelector('iframe');
+    if (currentIframe && currentIframe.src === embedUrl) {
+      console.log('A música já está sendo reproduzida no player.');
+      return;
+    }
+    // Atualiza o iframe
+    playerContainer.innerHTML = `
+      <iframe src="${embedUrl}" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+    `;
+    console.log(`Player atualizado para a música: ${track.name} de ${track.artists.map(artist => artist.name).join(', ')}`);
+  }
+}
+
+// Função para sincronizar o player
+async function synchronizePlayer() {
+  console.log('Sincronizando o player...');
+  const currentTrack = await getCurrentlyPlaying();
+  if (currentTrack) {
+    setPlayer(currentTrack);
+  } else {
+    const lastTrack = await getLastPlayed();
+    if (lastTrack) {
+      setPlayer(lastTrack);
+    } else {
+      console.log('Nenhuma música atualmente tocando nem músicas recentemente tocadas.');
+    }
+  }
+}
+
+// Configura a sincronização do player com intervalos regulares
+function startPlayerSync() {
+  synchronizePlayer(); // Sincronização inicial
+  setInterval(synchronizePlayer, 30000); // Sincroniza a cada 30 segundos
 }
 
 // Inicializa o fluxo após carregar a página
@@ -207,8 +309,21 @@ window.onSpotifyWebPlaybackSDKReady = () => {
       console.log('Player não está pronto com o ID:', device_id);
     });
 
+    // Eventos para sincronização quando a música muda
+    player.addListener('player_state_changed', state => {
+      if (!state) {
+        return;
+      }
+      const currentTrack = state.track_window.current_track;
+      console.log('Música atual no player:', currentTrack);
+      setPlayer(currentTrack);
+    });
+
     // Armazene o player para uso posterior
     window.spotifyPlayer = player;
+
+    // Iniciar a sincronização do player
+    startPlayerSync();
   } else {
     console.log('Usuário não está autenticado.');
   }
@@ -217,11 +332,8 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 // Função para exibir o player no footer
 function showPlayer() {
   console.log('Exibindo o player do Spotify.');
-  const playerContainer = document.getElementById('player-container');
-  playerContainer.innerHTML = `
-    <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M" width="100%" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-  `;
   document.getElementById('spotify-player').style.display = 'block';
+  synchronizePlayer(); // Sincroniza imediatamente ao mostrar o player
 }
 
 // Função para ocultar o player
@@ -234,19 +346,11 @@ function hidePlayer() {
 // Manipulador de clique no botão flutuante
 document.getElementById('spotifyBtn').addEventListener('click', () => {
   console.log('Botão do Spotify clicado.');
-  if (isAuthenticated()) {
-    // Alterna a visibilidade do player
-    const player = document.getElementById('spotify-player');
-    if (player.style.display === 'none' || player.style.display === '') {
-      showPlayer();
-    } else {
-      hidePlayer();
-    }
+  const player = document.getElementById('spotify-player');
+  if (player.style.display === 'none' || player.style.display === '') {
+    showPlayer();
   } else {
-    console.log('Usuário não autenticado. Abrindo modal de login.');
-    // Abre o modal de login
-    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-    loginModal.show();
+    hidePlayer();
   }
 });
 
@@ -269,6 +373,3 @@ function initializePlayer() {
     // play('spotify:track:SEU_TRACK_URI');
   }
 }
-
-// Chame initializePlayer quando o player estiver pronto
-// Pode ser integrado nos eventos do player acima
