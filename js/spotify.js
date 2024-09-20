@@ -10,6 +10,8 @@ const scopes = [
   'user-modify-playback-state',
   'user-read-playback-state',
   'user-read-recently-played',
+  'playlist-read-private',
+  'playlist-read-collaborative',
 ];
 
 // Funções de PKCE
@@ -25,7 +27,6 @@ function generateCodeVerifier(length = 128) {
     codeVerifier = codeVerifier.substring(0, length);
   }
 
-  console.log('Generated Code Verifier:', codeVerifier);
   return codeVerifier;
 }
 
@@ -37,7 +38,6 @@ async function generateCodeChallenge(codeVerifier) {
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
-  console.log('Generated Code Challenge:', base64String);
   return base64String;
 }
 
@@ -52,13 +52,11 @@ function generateRandomString(length) {
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
-  console.log('Generated Random String (State):', randomString);
   return randomString;
 }
 
 // Função para iniciar a autenticação
 async function initiateAuth() {
-  console.log('Iniciando processo de autenticação...');
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await generateCodeChallenge(codeVerifier);
   const state = generateRandomString(16);
@@ -66,9 +64,6 @@ async function initiateAuth() {
 
   sessionStorage.setItem('code_verifier', codeVerifier);
   sessionStorage.setItem('state', state);
-
-  console.log('Armazenado Code Verifier no sessionStorage:', codeVerifier);
-  console.log('Armazenado State no sessionStorage:', state);
 
   const args = new URLSearchParams({
     response_type: 'code',
@@ -80,7 +75,6 @@ async function initiateAuth() {
     code_challenge: codeChallenge,
   });
 
-  console.log('URL de Autorização:', `https://accounts.spotify.com/authorize?${args.toString()}`);
   window.location = `https://accounts.spotify.com/authorize?${args.toString()}`;
 }
 
@@ -91,18 +85,13 @@ function getUrlParams() {
     const [key, value] = param.split('=');
     params[key] = decodeURIComponent(value);
   });
-  console.log('Parâmetros da URL:', params);
   return params;
 }
 
 // Função para trocar o código pelo token
 async function exchangeCodeForToken(code) {
-  console.log('Trocando código por token...');
   const codeVerifier = sessionStorage.getItem('code_verifier');
   const storedState = sessionStorage.getItem('state');
-
-  console.log('Recuperado Code Verifier do sessionStorage:', codeVerifier);
-  console.log('Recuperado State do sessionStorage:', storedState);
 
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
@@ -111,8 +100,6 @@ async function exchangeCodeForToken(code) {
     client_id: clientId,
     code_verifier: codeVerifier,
   });
-
-  console.log('Corpo da requisição para trocar o código:', body.toString());
 
   try {
     const response = await fetch('https://accounts.spotify.com/api/token', {
@@ -123,8 +110,6 @@ async function exchangeCodeForToken(code) {
       body: body.toString(),
     });
 
-    console.log('Resposta da API do Spotify:', response);
-
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Erro na resposta da API:', errorData);
@@ -132,15 +117,18 @@ async function exchangeCodeForToken(code) {
     }
 
     const data = await response.json();
-    console.log('Dados recebidos da API do Spotify:', data);
 
     if (data.access_token) {
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('refresh_token', data.refresh_token);
       const expiresAt = new Date().getTime() + data.expires_in * 1000;
       localStorage.setItem('expires_at', expiresAt);
-      console.log('Tokens armazenados no localStorage.');
       window.history.replaceState({}, document.title, redirectUri);
+      // Hide login modal if visible
+      const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+      if (loginModal) {
+        loginModal.hide();
+      }
     } else {
       console.error('Erro ao obter o token:', data);
     }
@@ -153,7 +141,6 @@ async function exchangeCodeForToken(code) {
 function isAuthenticated() {
   const token = localStorage.getItem('access_token');
   const expiresAt = localStorage.getItem('expires_at');
-  console.log('Verificando autenticação. Token:', token, 'Expires At:', expiresAt);
   if (!token) return false;
   if (new Date().getTime() > expiresAt) return false;
   return true;
@@ -163,15 +150,12 @@ function isAuthenticated() {
 async function handleRedirect() {
   const params = getUrlParams();
   if (params.code) {
-    console.log('Código de autorização encontrado:', params.code);
     const storedState = sessionStorage.getItem('state');
     if (params.state !== storedState) {
       console.error('State mismatch. Esperado:', storedState, 'Recebido:', params.state);
       return;
     }
     await exchangeCodeForToken(params.code);
-  } else {
-    console.log('Nenhum código de autorização encontrado na URL.');
   }
 }
 
@@ -188,7 +172,6 @@ async function getCurrentlyPlaying() {
       return null;
     }
     const data = await response.json();
-    console.log('Currently Playing:', data);
     if (data && data.item) {
       return data.item;
     }
@@ -212,7 +195,6 @@ async function getLastPlayed() {
       return null;
     }
     const data = await response.json();
-    console.log('Last Played:', data);
     if (data && data.items && data.items.length > 0) {
       return data.items[0].track;
     }
@@ -226,16 +208,22 @@ async function getLastPlayed() {
 // Função para atualizar a interface do player
 function updatePlayerUI(track) {
   const currentTrackElement = document.getElementById('current-track');
+  const artistNameElement = document.getElementById('artist-name');
+  const albumArtElement = document.getElementById('album-art');
+
   if (track) {
-    currentTrackElement.textContent = `Reproduzindo: ${track.name} de ${track.artists.map(artist => artist.name).join(', ')}`;
+    currentTrackElement.textContent = `Reproduzindo: ${track.name}`;
+    artistNameElement.textContent = track.artists.map(artist => artist.name).join(', ');
+    albumArtElement.src = track.album.images[2]?.url || track.album.images[0]?.url || '';
   } else {
     currentTrackElement.textContent = 'Nenhuma música reproduzindo.';
+    artistNameElement.textContent = '';
+    albumArtElement.src = '';
   }
 }
 
 // Função para sincronizar o player
 async function synchronizePlayer() {
-  console.log('Sincronizando o player...');
   const currentTrack = await getCurrentlyPlaying();
   if (currentTrack) {
     updatePlayerUI(currentTrack);
@@ -276,6 +264,8 @@ async function play() {
 
     if (response.status === 204) {
       console.log('Reprodução iniciada.');
+      document.getElementById('btn-play').style.display = 'none';
+      document.getElementById('btn-pause').style.display = 'inline-block';
     } else {
       const error = await response.json();
       console.error('Erro ao iniciar reprodução:', error);
@@ -303,6 +293,8 @@ async function pause() {
 
     if (response.status === 204) {
       console.log('Reprodução pausada.');
+      document.getElementById('btn-play').style.display = 'inline-block';
+      document.getElementById('btn-pause').style.display = 'none';
     } else {
       const error = await response.json();
       console.error('Erro ao pausar reprodução:', error);
@@ -330,6 +322,7 @@ async function nextTrack() {
 
     if (response.status === 204) {
       console.log('Próxima faixa acionada.');
+      synchronizePlayer();
     } else {
       const error = await response.json();
       console.error('Erro ao avançar faixa:', error);
@@ -357,6 +350,7 @@ async function previousTrack() {
 
     if (response.status === 204) {
       console.log('Faixa anterior acionada.');
+      synchronizePlayer();
     } else {
       const error = await response.json();
       console.error('Erro ao retroceder faixa:', error);
@@ -398,10 +392,8 @@ handleRedirect();
 
 // Inicializa o Spotify Web Playback SDK
 window.onSpotifyWebPlaybackSDKReady = () => {
-  console.log('Spotify Web Playback SDK está pronto.');
   if (isAuthenticated()) {
     const token = localStorage.getItem('access_token');
-    console.log('Token encontrado no localStorage:', token);
     const player = new Spotify.Player({
       name: 'Minha Academia Player',
       getOAuthToken: cb => { cb(token); },
@@ -434,7 +426,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
         return;
       }
       const currentTrack = state.track_window.current_track;
-      console.log('Música atual no player:', currentTrack);
       updatePlayerUI(currentTrack);
     });
 
@@ -442,29 +433,27 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     window.spotifyPlayer = player;
 
     // Iniciar a sincronização do player
-    synchronizePlayer();
-    setInterval(synchronizePlayer, 30000); // Sincroniza a cada 30 segundos
+    startPlayerSync();
   } else {
-    console.log('Usuário não está autenticado.');
+    // Mostrar o modal de login se não estiver autenticado
+    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+    loginModal.show();
   }
 };
 
 // Função para exibir o player no footer
 function showPlayer() {
-  console.log('Exibindo o player do Spotify.');
   document.getElementById('spotify-player').style.display = 'block';
   synchronizePlayer(); // Sincroniza imediatamente ao mostrar o player
 }
 
 // Função para ocultar o player
 function hidePlayer() {
-  console.log('Ocultando o player do Spotify.');
   document.getElementById('spotify-player').style.display = 'none';
 }
 
 // Manipulador de clique no botão flutuante
 document.getElementById('spotifyBtn').addEventListener('click', () => {
-  console.log('Botão do Spotify clicado.');
   const player = document.getElementById('spotify-player');
   if (player.style.display === 'none' || player.style.display === '') {
     showPlayer();
@@ -475,7 +464,6 @@ document.getElementById('spotifyBtn').addEventListener('click', () => {
 
 // Manipulador de clique no botão de login
 document.getElementById('loginButton').addEventListener('click', () => {
-  console.log('Botão de login do Spotify clicado.');
   initiateAuth();
 });
 
@@ -485,6 +473,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnPause = document.getElementById('btn-pause');
   const btnNext = document.getElementById('btn-next');
   const btnPrev = document.getElementById('btn-prev');
+  const volumeBar = document.getElementById('volume-bar');
+  const progressBar = document.getElementById('progress-bar');
+  const currentTimeEl = document.getElementById('current-time');
+  const totalDurationEl = document.getElementById('total-duration');
 
   if (btnPlay) {
     btnPlay.addEventListener('click', play);
@@ -501,4 +493,65 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnPrev) {
     btnPrev.addEventListener('click', previousTrack);
   }
+
+  if (volumeBar) {
+    volumeBar.addEventListener('input', (e) => {
+      const volume = parseInt(e.target.value) / 100;
+      const player = window.spotifyPlayer;
+      if (player) {
+        player.setVolume(volume).then(() => {
+          console.log(`Volume set to ${volume * 100}%`);
+        });
+      }
+    });
+  }
+
+  if (progressBar) {
+    progressBar.addEventListener('input', (e) => {
+      const progress = parseInt(e.target.value);
+      // Implement seeking functionality if desired
+      // Currently, Spotify Web Playback SDK does not support seeking via API
+    });
+  }
+
+  // Atualizar barra de progresso e tempo
+  setInterval(async () => {
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+    if (!device_id) return;
+
+    try {
+      const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 200) {
+        const data = await response.json();
+        if (data && data.item && data.progress_ms !== undefined && data.item.duration_ms !== undefined) {
+          const progress = (data.progress_ms / data.item.duration_ms) * 100;
+          progressBar.value = progress;
+
+          const currentTime = msToTime(data.progress_ms);
+          const totalDuration = msToTime(data.item.duration_ms);
+          currentTimeEl.textContent = currentTime;
+          totalDurationEl.textContent = totalDuration;
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar a barra de progresso:', error);
+    }
+  }, 1000);
 });
+
+// Função para converter milissegundos para tempo (mm:ss)
+function msToTime(duration) {
+  let seconds = Math.floor((duration / 1000) % 60),
+      minutes = Math.floor((duration / (1000 * 60)) % 60);
+
+  minutes = (minutes < 10) ? "0" + minutes : minutes;
+  seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+  return minutes + ":" + seconds;
+}
