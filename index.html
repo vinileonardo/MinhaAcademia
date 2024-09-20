@@ -4,13 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Minha Academia</title>
+  
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   <!-- Animate.css para animações -->
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- Manifesto -->
+  
+  <!-- Animate.css para animações -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  
+  <!-- Font Awesome (Removido duplicata) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Manifesto e ícones (Removido duplicata) -->
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" sizes="57x57" href="img/apple-icon-57x57.png">
   <link rel="apple-touch-icon" sizes="60x60" href="img/apple-icon-60x60.png">
@@ -25,23 +29,23 @@
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="96x96" href="img/favicon-96x96.png">
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
-  <link rel="manifest" href="manifest.json">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="msapplication-TileImage" content="img/ms-icon-144x144.png">
   <meta name="theme-color" content="#ffffff">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+  <!-- CSS Personalizado -->
   <link href="css/style.css" rel="stylesheet">  
 </head>
 <body>
   <!-- Navegação de abas -->
   <nav class="nav nav-tabs" id="nav-tab" role="tablist">
-    <a class="nav-item nav-link active" id="nav-segunda-tab" data-toggle="tab" href="#nav-segunda" role="tab" aria-controls="nav-segunda" aria-selected="true" onclick="ativarAba('segunda')">Segunda-feira</a>
-    <a class="nav-item nav-link" id="nav-terca-tab" data-toggle="tab" href="#nav-terca" role="tab" aria-controls="nav-terca" aria-selected="false" onclick="ativarAba('terca')">Terça-feira</a>
-    <a class="nav-item nav-link" id="nav-quarta-tab" data-toggle="tab" href="#nav-quarta" role="tab" aria-controls="nav-quarta" aria-selected="false" onclick="ativarAba('quarta')">Quarta-feira</a>
-    <a class="nav-item nav-link" id="nav-quinta-tab" data-toggle="tab" href="#nav-quinta" role="tab" aria-controls="nav-quinta" aria-selected="false" onclick="ativarAba('quinta')">Quinta-feira</a>
-    <a class="nav-item nav-link" id="nav-sexta-tab" data-toggle="tab" href="#nav-sexta" role="tab" aria-controls="nav-sexta" aria-selected="false" onclick="ativarAba('sexta')">Sexta-feira</a>
-    <a class="nav-item nav-link" id="nav-sabado-tab" data-toggle="tab" href="#nav-sabado" role="tab" aria-controls="nav-sabado" aria-selected="false" onclick="ativarAba('sabado')">Sábado</a>
-    <a class="nav-item nav-link" id="nav-domingo-tab" data-toggle="tab" href="#nav-domingo" role="tab" aria-controls="nav-domingo" aria-selected="false" onclick="ativarAba('domingo')">Domingo</a>
+    <a class="nav-item nav-link active" id="nav-segunda-tab" data-bs-toggle="tab" href="#nav-segunda" role="tab" aria-controls="nav-segunda" aria-selected="true" onclick="ativarAba('segunda')">Segunda-feira</a>
+    <a class="nav-item nav-link" id="nav-terca-tab" data-bs-toggle="tab" href="#nav-terca" role="tab" aria-controls="nav-terca" aria-selected="false" onclick="ativarAba('terca')">Terça-feira</a>
+    <a class="nav-item nav-link" id="nav-quarta-tab" data-bs-toggle="tab" href="#nav-quarta" role="tab" aria-controls="nav-quarta" aria-selected="false" onclick="ativarAba('quarta')">Quarta-feira</a>
+    <a class="nav-item nav-link" id="nav-quinta-tab" data-bs-toggle="tab" href="#nav-quinta" role="tab" aria-controls="nav-quinta" aria-selected="false" onclick="ativarAba('quinta')">Quinta-feira</a>
+    <a class="nav-item nav-link" id="nav-sexta-tab" data-bs-toggle="tab" href="#nav-sexta" role="tab" aria-controls="nav-sexta" aria-selected="false" onclick="ativarAba('sexta')">Sexta-feira</a>
+    <a class="nav-item nav-link" id="nav-sabado-tab" data-bs-toggle="tab" href="#nav-sabado" role="tab" aria-controls="nav-sabado" aria-selected="false" onclick="ativarAba('sabado')">Sábado</a>
+    <a class="nav-item nav-link" id="nav-domingo-tab" data-bs-toggle="tab" href="#nav-domingo" role="tab" aria-controls="nav-domingo" aria-selected="false" onclick="ativarAba('domingo')">Domingo</a>
   </nav>
 
   <!-- Conteúdo das abas -->
@@ -104,41 +108,38 @@
     </div>
   </div>
 
-
-  <!-- Modal para adicionar/editar exercício -->
+  <!-- Modal para adicionar/editar exercício (Padronizado com o modal de login) -->
   <div class="modal fade" id="modalExercicio" tabindex="-1" role="dialog" aria-labelledby="modalExercicioLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <h5 id="modalExercicioLabel" class="modal-title">Adicionar Exercício</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <form id="form-exercicio">
           <div class="modal-body">
             <input type="hidden" id="dia-atual">
             <input type="hidden" id="indice-exercicio">
-            <div class="form-group">
-              <label for="nome-exercicio">Nome do Exercício:</label>
+            <div class="mb-3">
+              <label for="nome-exercicio" class="form-label">Nome do Exercício:</label>
               <input type="text" class="form-control" id="nome-exercicio" required>
             </div>
-            <div class="form-group">
-              <label for="modo-video">Selecione o modo de inserir o vídeo:</label>
-              <select class="form-control" id="modo-video" required>
+            <div class="mb-3">
+              <label for="modo-video" class="form-label">Selecione o modo de inserir o vídeo:</label>
+              <select class="form-select" id="modo-video" required>
                 <option value="">Escolha uma opção</option>
                 <option value="link">Inserir Link do YouTube</option>
                 <option value="pesquisar">Pesquisar Vídeo no YouTube</option>
               </select>
             </div>
-            <div id="container-link" class="form-group" style="display: none;">
-              <label for="link-youtube">Link do YouTube:</label>
+            <div id="container-link" class="mb-3" style="display: none;">
+              <label for="link-youtube" class="form-label">Link do YouTube:</label>
               <input type="url" class="form-control" id="link-youtube">
               <button type="button" class="btn btn-primary mt-2" onclick="preExibirVideo()">Pré-Exibir</button>
               <div id="preview-link" class="mt-3"></div>
             </div>
-            <div id="container-pesquisa" class="form-group" style="display: none;">
-              <label for="termo-pesquisa">Pesquisar no YouTube:</label>
+            <div id="container-pesquisa" class="mb-3" style="display: none;">
+              <label for="termo-pesquisa" class="form-label">Pesquisar no YouTube:</label>
               <input type="text" class="form-control" id="termo-pesquisa">
               <button type="button" class="btn btn-primary mt-2" onclick="pesquisarYoutube()">Pesquisar</button>
               <div id="resultados-pesquisa" class="mt-3"></div>
@@ -147,7 +148,7 @@
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-success">Salvar</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           </div>
         </form>
       </div>
@@ -160,9 +161,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 id="modalConfirmacaoLabel" class="modal-title">Confirmar Exercício</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-            <span aria-hidden="true">X</span>
-          </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <div class="modal-body">
           <p><strong>Título:</strong> <span id="confirm-titulo"></span></p>
@@ -172,7 +171,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-success" id="btn-confirmar-salvar">Sim</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Não</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
         </div>
       </div>
     </div>
@@ -184,7 +183,7 @@
   </div>
 
   <!-- Footer com o player -->
-  <footer id="spotify-player" id="spotify-player" class="bg-dark text-white fixed-bottom spotify-player">
+  <footer id="spotify-player" class="bg-dark text-white fixed-bottom spotify-player">
     <div class="container-fluid">
       <div class="row align-items-center py-2">
         <!-- Album em reprodução -->
@@ -195,7 +194,8 @@
             <div id="artist-name" class="text-white text-decoration-none"></div>
           </div>
           <div class="album-icons ms-3 d-none d-md-flex flex-column">
-            <a href="#" class="text-white mb-2"><i class="far fa-heart"></i></a>
+            <!-- Botão de Favoritar (Adicionado ID para funcionalidade) -->
+            <a href="#" class="text-white mb-2" id="btn-favorite"><i class="far fa-heart"></i></a>
           </div>
         </div>
 
@@ -204,9 +204,13 @@
           <div class="d-flex flex-column align-items-center">
             <div class="player-controller mb-2">
               <ul class="list-inline mb-0">
-                <li class="list-inline-item mx-2"><a href="#" class="text-white" ><i class="fas fa-random"></i></a></li>
                 <li class="list-inline-item mx-2"><a href="#" class="text-white" id="btn-prev"><i class="fas fa-step-backward"></i></a></li>
-                <li class="list-inline-item mx-2"><a href="#" class="text-white" id="btn-play"><i class="far fa-play-circle fa-2x"></i></a></li>
+                <!-- Botão Play/Pause (Unificado para toggle) -->
+                <li class="list-inline-item mx-2">
+                  <a href="#" class="text-white" id="btn-play-pause">
+                    <i class="far fa-play-circle fa-2x" id="icon-play-pause"></i>
+                  </a>
+                </li>
                 <li class="list-inline-item mx-2"><a href="#" class="text-white" id="btn-next"><i class="fas fa-step-forward"></i></a></li>
                 <li class="list-inline-item mx-2"><a href="#" class="text-white"><i class="fas fa-redo-alt"></i></a></li>
               </ul>
@@ -225,7 +229,8 @@
         <!-- Controle da direita -->
         <div class="col-12 col-md-3 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
           <div class="d-flex align-items-center">
-            <a href="#" class="text-white me-3"><i class="fas fa-volume-up"></i></a>
+            <!-- Botão de Volume (Adicionado ID para funcionalidade) -->
+            <a href="#" class="text-white me-3" id="btn-volume"><i class="fas fa-volume-up"></i></a>
             <div class="progress progress-volume position-relative" id="progress-volume" style="width: 100px; height: 8px;">
               <div id="volume-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
               <div class="progress-handle" id="handle-volume" style="left:25%;"></div>
@@ -261,7 +266,6 @@
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
   
   <!-- Seus scripts personalizados -->
-  <script src="js/app.js"></script>
   <script src="js/spotify.js"></script>
 </body>
 </html>

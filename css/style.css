@@ -1,12 +1,20 @@
 /* style.css */
 
-/* Reset e base */
+/* 
+  Reset e base
+  Define as cores de fundo e de texto padrão para o corpo da página,
+  bem como a fonte utilizada.
+*/
 body {
     background-color: #121212;
     color: #FFFFFF;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* 
+  Estilização das abas de navegação
+  Define as cores, transições e efeitos de hover para as abas.
+*/
 .nav-tabs .nav-link {
     color: #b3b3b3;
     background-color: #181818;
@@ -25,7 +33,10 @@ body {
     color: #1DB954;
 }
 
-/* Estilo para o botão flutuante */
+/* 
+  Estilo para o botão flutuante do Spotify
+  Define a posição fixa, tamanho, cores e efeitos de hover.
+*/
 .spotify-float-btn {
     position: fixed;
     bottom: 80px; /* Ajustado para não sobrepor o player */
@@ -49,7 +60,10 @@ body {
     transform: scale(1.1);
 }
 
-/* Estilo para o player no footer */
+/* 
+  Estilo para o player no footer
+  Define a aparência, posição e responsividade do player.
+*/
 .spotify-player {
     display: none; /* Inicialmente oculto */
     width: 100%;
@@ -71,6 +85,10 @@ body {
     justify-content: space-between;
 }
 
+/* 
+  Estilo para a arte do álbum
+  Define transições e efeitos de hover para a imagem do álbum.
+*/
 .album-art img {
     border-radius: 4px;
     transition: transform 0.3s;
@@ -80,9 +98,14 @@ body {
     transform: scale(1.05);
 }
 
+/* 
+  Informações da faixa
+  Define a exibição das informações da faixa atual.
+*/
 .track-info {
     display: flex;
     flex-direction: column;
+    padding-left: 5px;
 }
 
 .track-info #current-track {
@@ -100,7 +123,10 @@ body {
     color: #b3b3b3;
 }
 
-/* Controles de Reprodução */
+/* 
+  Controles de Reprodução
+  Define o estilo dos botões de controle do player.
+*/
 .playback-controls .btn {
     width: 36px;
     height: 36px;
@@ -122,7 +148,10 @@ body {
     box-shadow: none;
 }
 
-/* Barra de Progresso */
+/* 
+  Barra de Progresso
+  Define o estilo da barra de progresso da música.
+*/
 .progress-container {
     display: flex;
     flex-direction: column;
@@ -139,7 +168,10 @@ body {
     color: #b3b3b3;
 }
 
-/* Controle de Volume */
+/* 
+  Controle de Volume
+  Define o estilo da barra de volume.
+*/
 .volume-control {
     display: flex;
     align-items: center;
@@ -151,7 +183,10 @@ body {
     cursor: pointer;
 }
 
-/* Estilos para Resultados de Pesquisa de Vídeo */
+/* 
+  Estilos para Resultados de Pesquisa de Vídeo
+  Define o estilo dos itens de resultado na pesquisa de vídeos.
+*/
 .resultado-item {
     cursor: pointer;
     padding: 10px;
@@ -178,7 +213,10 @@ body {
     color: #1DB954;
 }
 
-/* Modais */
+/* 
+  Modais
+  Define o estilo dos modais para combinar com o tema escuro da aplicação.
+*/
 .modal-content {
     background-color: #282828;
     color: white;
@@ -201,7 +239,10 @@ body {
     box-shadow: none;
 }
 
-/* Responsividade */
+/* 
+  Responsividade
+  Ajusta o layout do player para diferentes tamanhos de tela.
+*/
 @media (max-width: 768px) {
     .player-container {
         flex-direction: column;
@@ -222,96 +263,98 @@ body {
     }
 }
 
-
-/* clone.css */
+/* 
+  clone.css - Estilos Adicionais
+  Estes estilos complementam o estilo principal e adicionam funcionalidades específicas.
+*/
 
 /* Estilos gerais */
 * {
     color: white;
     text-decoration: none;
     font-size: 0.9rem;
-  }
-  
-  #player {
+}
+
+#player {
     background-color: #171717;
-  }
-  
-  /* Album em reprodução */
-  .album-info a {
+}
+
+/* Album em reprodução */
+.album-info a {
     font-size: 0.9rem;
-  }
-  
-  .album-icons a {
+}
+
+.album-icons a {
     color: white;
     transition: color 0.3s;
-  }
-  
-  .album-icons a:hover {
+}
+
+.album-icons a:hover {
     color: #1dd05d;
-  }
-  
-  .pointer {
+}
+
+.pointer {
     cursor: pointer;
-  }
-  
-  /* Controle do player */
-  .player-controller ul {
+}
+
+/* Controle do player */
+.player-controller ul {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-  }
-  
-  .player-controller ul li {
+}
+
+.player-controller ul li {
     list-style: none;
-  }
-  
-  .player-controller ul li a {
+}
+
+.player-controller ul li a {
     color: white;
     transition: color 0.3s;
-  }
-  
-  .player-controller ul li a:hover {
+}
+
+.player-controller ul li a:hover {
     color: #1dd05d;
-  }
-  
-  .song-progress, .song-duration {
+}
+
+.song-progress, .song-duration {
     font-size: 0.8rem;
-  }
-  
-  /* Controle da direita */
-  .right-controller a {
+}
+
+/* Controle da direita */
+.right-controller a {
     color: white;
     transition: color 0.3s;
-  }
-  
-  .right-controller a:hover {
+}
+
+.right-controller a:hover {
     color: #1dd05d;
-  }
-  
-  /* Barras de Progresso */
-  .progress-main, .progress-volume {
+}
+
+/* Barras de Progresso */
+.progress-main, .progress-volume {
     background-color: #535353;
     border-radius: 5px;
     position: relative; /* Necessário para posicionamento absoluto da bolinha */
     overflow: visible; /* Permite que a bolinha escape do contêiner */
-  }
-  
-  .progress-bar {
+}
+
+.progress-bar {
     background-color: #fff; /* Cor padrão: branco */
     transition: width 0.3s, background-color 0.3s;
     height: 8px; /* Altura ajustada para acomodar a bolinha */
     border-radius: 5px;
-  }
-  
-  /* Efeito de Hover nas Barras de Progresso */
-  .progress-main:hover .progress-bar,
-  .progress-volume:hover .progress-bar {
+}
+
+/* Efeito de Hover nas Barras de Progresso */
+.progress-main:hover .progress-bar,
+.progress-volume:hover .progress-bar {
     background-color: #1dd05d; /* Verde */
-  }
-  
-  /* Bolinha na Barra de Progresso */
-  .progress-handle {
+}
+
+/* Bolinha na Barra de Progresso */
+.progress-handle {
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
@@ -323,41 +366,40 @@ body {
     transition: background-color 0.3s, transform 0.3s;
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
     z-index: 2; /* Garante que a bolinha fique acima da barra */
-  }
-  
-  /* Efeitos de Hover na Bolinha */
-  .progress-handle:hover {
+}
+
+/* Efeitos de Hover na Bolinha */
+.progress-handle:hover {
     background-color: #1dd05d;
     transform: translate(-50%, -50%) scale(1.2);
-  }
-  
-  /* Hover nos Ícones */
-  #player i:hover {
+}
+
+/* Hover nos Ícones */
+#player i:hover {
     color: #1dd05d;
-  }
-  
-  /* Responsividade da Imagem do Álbum */
-  .album-image {
+}
+
+/* Responsividade da Imagem do Álbum */
+.album-image {
     width: 60px; /* Tamanho padrão para telas médias e grandes */
     height: 60px;
     object-fit: cover; /* Mantém a proporção da imagem, cortando se necessário */
     border-radius: 5px; /* Opcional: adiciona borda arredondada */
     transition: width 0.3s, height 0.3s; /* Transições suaves */
-  }
-  
-  /* Ajustes para Tamanhos de Tela Menores */
-  @media (max-width: 767.98px) {
+}
+
+/* Ajustes para Tamanhos de Tela Menores */
+@media (max-width: 767.98px) {
     .album-icons {
-      display: none;
+        display: none;
     }
-  
+
     .progress-volume {
-      width: 80px;
+        width: 80px;
     }
-  
+
     .album-image {
-      width: 40px; /* Reduz o tamanho da imagem em telas pequenas */
-      height: 40px;
+        width: 40px; /* Reduz o tamanho da imagem em telas pequenas */
+        height: 40px;
     }
-  }
-  
+}
