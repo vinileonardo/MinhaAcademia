@@ -190,7 +190,7 @@
         <div class="col-12 col-md-3 d-flex align-items-center mb-3 mb-md-0">
           <img src="" alt="Album Art" id="album-art" width="60" height="60">
           <div class="track-info album-info d-flex flex-column">
-            <div id="current-track" class="text-white text-decoration-none">Nenhuma música reproduzindo.</div>
+            <div id="current-track" class="text-white text-decoration-none" data-id="">Nenhuma música reproduzindo.</div>
             <div id="artist-name" class="text-white text-decoration-none"></div>
           </div>
           <div class="album-icons ms-3 d-none d-md-flex flex-column">
@@ -204,24 +204,52 @@
           <div class="d-flex flex-column align-items-center">
             <div class="player-controller mb-2">
               <ul class="list-inline mb-0">
-                <li class="list-inline-item mx-2"><a href="#" class="text-white" id="btn-prev"><i class="fas fa-step-backward"></i></a></li>
-                <!-- Botão Play/Pause (Unificado para toggle) -->
+                <!-- Botão Shuffle -->
+                <li class="list-inline-item mx-2">
+                  <a href="#" class="text-white" id="btn-shuffle" aria-label="Shuffle">
+                    <i class="fas fa-random"></i>
+                  </a>
+                </li>
+                <!-- Botão Repeat -->
+                <li class="list-inline-item mx-2">
+                  <a href="#" class="text-white" id="btn-repeat" aria-label="Repeat">
+                    <i class="fas fa-redo-alt"></i>
+                  </a>
+                </li>
+                <!-- Botão Previous -->
+                <li class="list-inline-item mx-2">
+                  <a href="#" class="text-white" id="btn-prev"><i class="fas fa-step-backward"></i></a>
+                </li>
+                <!-- Botão Play/Pause -->
                 <li class="list-inline-item mx-2">
                   <a href="#" class="text-white" id="btn-play-pause">
                     <i class="far fa-play-circle fa-2x" id="icon-play-pause"></i>
                   </a>
                 </li>
-                <li class="list-inline-item mx-2"><a href="#" class="text-white" id="btn-next"><i class="fas fa-step-forward"></i></a></li>
-                <li class="list-inline-item mx-2"><a href="#" class="text-white"><i class="fas fa-redo-alt"></i></a></li>
+                <!-- Botão Next -->
+                <li class="list-inline-item mx-2">
+                  <a href="#" class="text-white" id="btn-next"><i class="fas fa-step-forward"></i></a>
+                </li>
+                <!-- Slider de Seek -->
+                <li class="list-inline-item mx-2 w-100">
+                  <div class="progress progress-main flex-grow-1 position-relative" id="progress-main" style="height: 8px; cursor: pointer;">
+                    <div id="progress-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-handle" id="handle-main" style="left:25%;"></div>
+                  </div>
+                  <div class="d-flex justify-content-between mt-1">
+                    <span class="song-progress" id="current-time">0:00</span>
+                    <span class="song-duration" id="total-duration">0:00</span>
+                  </div>
+                </li>
               </ul>
             </div>
             <div class="d-flex align-items-center w-100">
-              <span class="song-progress me-3" id="current-time">0:00</span>
-              <div class="progress progress-main flex-grow-1 position-relative" id="progress-main" style="height: 8px;">
-                <div id="progress-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                <div class="progress-handle" id="handle-main" style="left:25%;"></div>
+              <span class="song-progress me-3" id="current-time-display">0:00</span>
+              <div class="progress progress-main flex-grow-1 position-relative" id="progress-main-display" style="height: 8px;">
+                <div id="progress-bar-display" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-handle" id="handle-main-display" style="left:25%;"></div>
               </div>
-              <span class="song-duration ms-3" id="total-duration">0:00</span>
+              <span class="song-duration ms-3" id="total-duration-display">0:00</span>
             </div>
           </div>
         </div>
@@ -267,5 +295,6 @@
   
   <!-- Seus scripts personalizados -->
   <script src="js/spotify.js"></script>
+  <script src="js/exercicios.js"></script> <!-- O quarto arquivo -->
 </body>
 </html>

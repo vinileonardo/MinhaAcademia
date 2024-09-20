@@ -34,6 +34,37 @@ body {
 }
 
 /* 
+  Hover para todos os botões para mudar a cor para verde
+*/
+.btn:hover {
+    background-color: #1DB954 !important; /* Verde Spotify */
+    color: #FFFFFF !important;
+}
+
+/* Hover específico para botões primários, informativos e de perigo */
+.btn-primary:hover,
+.btn-info:hover,
+.btn-danger:hover {
+    background-color: #1DB954 !important;
+    border-color: #1DB954 !important;
+    color: #FFFFFF !important;
+}
+
+/* 
+  Indicação visual para botão Repeat ativo
+*/
+#btn-repeat.active-repeat i {
+    color: #1DB954; /* Verde para indicar ativo */
+}
+
+/* 
+  Indicação visual para botão Shuffle ativo
+*/
+#btn-shuffle.active-shuffle i {
+    color: #1DB954; /* Verde para indicar ativo */
+}
+
+/* 
   Estilo para o botão flutuante do Spotify
   Define a posição fixa, tamanho, cores e efeitos de hover.
 */
@@ -163,7 +194,10 @@ body {
     cursor: pointer;
 }
 
-#current-time, #total-duration {
+#current-time,
+#total-duration,
+#current-time-display,
+#total-duration-display {
     font-size: 10px;
     color: #b3b3b3;
 }
@@ -222,17 +256,20 @@ body {
     color: white;
 }
 
-.modal-header, .modal-footer {
+.modal-header,
+.modal-footer {
     border: none;
 }
 
-.form-control, .form-select {
+.form-control,
+.form-select {
     background-color: #3a3a3a;
     color: white;
     border: none;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     background-color: #3a3a3a;
     color: white;
     border: none;
@@ -249,7 +286,9 @@ body {
         height: auto;
     }
 
-    .track-info, .playback-controls, .progress-container {
+    .track-info,
+    .playback-controls,
+    .progress-container {
         width: 100%;
         text-align: center;
     }
@@ -318,7 +357,8 @@ body {
     color: #1dd05d;
 }
 
-.song-progress, .song-duration {
+.song-progress,
+.song-duration {
     font-size: 0.8rem;
 }
 
@@ -333,7 +373,8 @@ body {
 }
 
 /* Barras de Progresso */
-.progress-main, .progress-volume {
+.progress-main,
+.progress-volume {
     background-color: #535353;
     border-radius: 5px;
     position: relative; /* Necessário para posicionamento absoluto da bolinha */
@@ -402,4 +443,24 @@ body {
         width: 40px; /* Reduz o tamanho da imagem em telas pequenas */
         height: 40px;
     }
+}
+
+/* Spinner de loading */
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+    border-color: #fff;
+    border-top-color: transparent;
+    animation: spinner-border .75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+/* Botão desabilitado */
+.btn.loading {
+    pointer-events: none;
+    opacity: 0.6;
 }

@@ -249,10 +249,12 @@ function updatePlayerUI(track) {
 
   if (track) {
     currentTrackElement.textContent = `${track.name}`;
+    currentTrackElement.setAttribute('data-id', track.id); // Armazena o ID da faixa
     artistNameElement.textContent = track.artists.map(artist => artist.name).join(', ');
     albumArtElement.src = track.album.images[2]?.url || track.album.images[0]?.url || '';
   } else {
     currentTrackElement.textContent = 'Nenhuma música reproduzindo.';
+    currentTrackElement.removeAttribute('data-id'); // Remove o ID quando não há faixa
     artistNameElement.textContent = '';
     albumArtElement.src = '';
   }
@@ -292,124 +294,84 @@ function startPlayerSync() {
 
 /* Iniciar reprodução */
 async function play() {
-  const token = localStorage.getItem('access_token');
-  const device_id = localStorage.getItem('device_id');
-  if (!device_id) {
-    alert('Player não está pronto.');
-    return;
-  }
+    const playButton = document.getElementById('btn-play-pause');
+    playButton.classList.add('loading'); // Adicionar classe de loading
+    playButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Mostrar spinner
 
-  try {
-    const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
-      method: 'PUT',
-      body: JSON.stringify({}),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-    });
-
-    if (response.status === 204) {
-      console.log('Reprodução iniciada.');
-      // Atualiza o ícone para pausa
-      document.getElementById('icon-play-pause').classList.remove('fa-play-circle');
-      document.getElementById('icon-play-pause').classList.add('fa-pause-circle');
-    } else {
-      const error = await response.json();
-      console.error('Erro ao iniciar reprodução:', error);
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+    if (!device_id) {
+        alert('Player não está pronto.');
+        playButton.classList.remove('loading');
+        playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+        return;
     }
-  } catch (error) {
-    console.error('Erro ao iniciar reprodução:', error);
-  }
+
+    try {
+        const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
+            method: 'PUT',
+            body: JSON.stringify({}),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+        });
+
+        if (response.status === 204) {
+            console.log('Reprodução iniciada.');
+            // Atualiza o ícone para pause
+            playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+        } else {
+            const error = await response.json();
+            console.error('Erro ao iniciar reprodução:', error);
+            playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+        }
+    } catch (error) {
+        console.error('Erro ao iniciar reprodução:', error);
+        playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+    } finally {
+        playButton.classList.remove('loading'); // Remover classe de loading
+    }
 }
 
 /* Pausar reprodução */
 async function pause() {
-  const token = localStorage.getItem('access_token');
-  const device_id = localStorage.getItem('device_id');
-  if (!device_id) {
-    alert('Player não está pronto.');
-    return;
-  }
+    const pauseButton = document.getElementById('btn-play-pause');
+    pauseButton.classList.add('loading'); // Adicionar classe de loading
+    pauseButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Mostrar spinner
 
-  try {
-    const response = await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${device_id}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-    });
-
-    if (response.status === 204) {
-      console.log('Reprodução pausada.');
-      // Atualiza o ícone para play
-      document.getElementById('icon-play-pause').classList.remove('fa-pause-circle');
-      document.getElementById('icon-play-pause').classList.add('fa-play-circle');
-    } else {
-      const error = await response.json();
-      console.error('Erro ao pausar reprodução:', error);
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+    if (!device_id) {
+        alert('Player não está pronto.');
+        pauseButton.classList.remove('loading');
+        pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+        return;
     }
-  } catch (error) {
-    console.error('Erro ao pausar reprodução:', error);
-  }
-}
 
-/* Avançar para a próxima faixa */
-async function nextTrack() {
-  const token = localStorage.getItem('access_token');
-  const device_id = localStorage.getItem('device_id');
-  if (!device_id) {
-    alert('Player não está pronto.');
-    return;
-  }
+    try {
+        const response = await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${device_id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+        });
 
-  try {
-    const response = await fetch(`https://api.spotify.com/v1/me/player/next?device_id=${device_id}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-    });
-
-    if (response.status === 204) {
-      console.log('Próxima faixa acionada.');
-      synchronizePlayer();
-    } else {
-      const error = await response.json();
-      console.error('Erro ao avançar faixa:', error);
+        if (response.status === 204) {
+            console.log('Reprodução pausada.');
+            // Atualiza o ícone para play
+            pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+        } else {
+            const error = await response.json();
+            console.error('Erro ao pausar reprodução:', error);
+            pauseButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+        }
+    } catch (error) {
+        console.error('Erro ao pausar reprodução:', error);
+        pauseButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+    } finally {
+        pauseButton.classList.remove('loading'); // Remover classe de loading
     }
-  } catch (error) {
-    console.error('Erro ao avançar faixa:', error);
-  }
-}
-
-/* Retroceder para a faixa anterior */
-async function previousTrack() {
-  const token = localStorage.getItem('access_token');
-  const device_id = localStorage.getItem('device_id');
-  if (!device_id) {
-    alert('Player não está pronto.');
-    return;
-  }
-
-  try {
-    const response = await fetch(`https://api.spotify.com/v1/me/player/previous?device_id=${device_id}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-    });
-
-    if (response.status === 204) {
-      console.log('Faixa anterior acionada.');
-      synchronizePlayer();
-    } else {
-      const error = await response.json();
-      console.error('Erro ao retroceder faixa:', error);
-    }
-  } catch (error) {
-    console.error('Erro ao retroceder faixa:', error);
-  }
 }
 
 /* 
@@ -447,6 +409,215 @@ async function transferPlaybackHere(device_id) {
   Verifica se há redirecionamento de autenticação e lida com ele.
 */
 handleRedirect();
+
+/* 
+  Função debounce
+  Evita que múltiplas requisições sejam enviadas rapidamente.
+*/
+function debounce(func, delay) {
+    let debounceTimer;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func.apply(context, args), delay);
+    }
+}
+
+/* 
+  Função para alternar o modo repeat 
+*/
+let isRepeat = false; // Estado inicial de repeat
+document.getElementById('btn-repeat').addEventListener('click', debounce(async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+
+    if (!device_id) {
+        alert('Player não está pronto.');
+        return;
+    }
+
+    try {
+        // Alternar o estado de repeat
+        isRepeat = !isRepeat;
+        const repeatState = isRepeat ? 'track' : 'off';
+
+        const setRepeatResponse = await fetch(`https://api.spotify.com/v1/me/player/repeat?state=${repeatState}&device_id=${device_id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (setRepeatResponse.status === 204) {
+            console.log(`Repeat ${isRepeat ? 'On' : 'Off'}`);
+            // Atualizar o ícone para indicar o estado
+            const repeatIcon = document.querySelector('#btn-repeat i');
+            if (isRepeat) {
+                repeatIcon.classList.add('active-repeat');
+            } else {
+                repeatIcon.classList.remove('active-repeat');
+            }
+        } else {
+            const error = await setRepeatResponse.json();
+            console.error('Erro ao alternar Repeat:', error);
+        }
+    } catch (error) {
+        console.error('Erro ao alternar Repeat:', error);
+    }
+}, 300)); // Delay de 300ms
+
+/* 
+  Função para alternar shuffle 
+*/
+let isShuffle = false; // Estado inicial de shuffle
+document.getElementById('btn-shuffle').addEventListener('click', debounce(async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+
+    if (!device_id) {
+        alert('Player não está pronto.');
+        return;
+    }
+
+    try {
+        // Alternar o estado de shuffle
+        isShuffle = !isShuffle;
+        const shuffleState = isShuffle ? 'true' : 'false';
+
+        const setShuffleResponse = await fetch(`https://api.spotify.com/v1/me/player/shuffle?state=${shuffleState}&device_id=${device_id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (setShuffleResponse.status === 204) {
+            console.log(`Shuffle ${isShuffle ? 'On' : 'Off'}`);
+            // Atualizar o ícone para indicar o estado
+            const shuffleIcon = document.querySelector('#btn-shuffle i');
+            if (isShuffle) {
+                shuffleIcon.classList.add('active-shuffle');
+            } else {
+                shuffleIcon.classList.remove('active-shuffle');
+            }
+        } else {
+            const error = await setShuffleResponse.json();
+            console.error('Erro ao alternar Shuffle:', error);
+        }
+    } catch (error) {
+        console.error('Erro ao alternar Shuffle:', error);
+    }
+}, 300)); // Delay de 300ms
+
+/* 
+  Função para alternar entre Play e Pause ao clicar no botão play/pause.
+  Atualiza o ícone conforme o estado da reprodução.
+*/
+document.getElementById('btn-play-pause').addEventListener('click', debounce(async (e) => {
+    e.preventDefault();
+    const playButton = document.getElementById('btn-play-pause');
+    const icon = document.getElementById('icon-play-pause');
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+
+    if (!device_id) {
+        alert('Player não está pronto.');
+        return;
+    }
+
+    try {
+        // Verifica o estado atual da reprodução
+        const response = await fetch('https://api.spotify.com/v1/me/player', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (response.status === 204) {
+            // Nenhuma reprodução está ocorrendo, iniciar reprodução
+            await play();
+        } else if (response.status === 200) {
+            const data = await response.json();
+            if (data.is_playing) {
+                // Se estiver tocando, pausar
+                await pause();
+            } else {
+                // Se estiver pausado, reproduzir
+                await play();
+            }
+        } else {
+            console.error('Erro ao verificar o estado do player:', response.status);
+        }
+    } catch (error) {
+        console.error('Erro ao alternar Play/Pause:', error);
+    }
+}, 300)); // Delay de 300ms
+
+/* 
+  Funções de controle de reprodução
+  Estas funções interagem com a API do Spotify para controlar a reprodução da música.
+*/
+
+/* Avançar para a próxima faixa */
+async function nextTrack() {
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+    if (!device_id) {
+        alert('Player não está pronto.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://api.spotify.com/v1/me/player/next?device_id=${device_id}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+        });
+
+        if (response.status === 204) {
+            console.log('Próxima faixa acionada.');
+            synchronizePlayer();
+        } else {
+            const error = await response.json();
+            console.error('Erro ao avançar faixa:', error);
+        }
+    } catch (error) {
+        console.error('Erro ao avançar faixa:', error);
+    }
+}
+
+/* Retroceder para a faixa anterior */
+async function previousTrack() {
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+    if (!device_id) {
+        alert('Player não está pronto.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://api.spotify.com/v1/me/player/previous?device_id=${device_id}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+        });
+
+        if (response.status === 204) {
+            console.log('Faixa anterior acionada.');
+            synchronizePlayer();
+        } else {
+            const error = await response.json();
+            console.error('Erro ao retroceder faixa:', error);
+        }
+    } catch (error) {
+        console.error('Erro ao retroceder faixa:', error);
+    }
+}
 
 /* 
   Inicializa o Spotify Web Playback SDK.
@@ -538,48 +709,48 @@ document.getElementById('spotifyBtn').addEventListener('click', () => {
 });
 
 /* 
-  Manipulador de clique no botão de login.
-  Inicia o processo de autenticação com o Spotify.
+  Função para salvar a música atual nos favoritos do usuário.
+  Utiliza a API do Spotify para adicionar a faixa à biblioteca.
 */
-document.getElementById('loginButton').addEventListener('click', () => {
-  initiateAuth();
-});
+async function saveCurrentTrack() {
+    const token = localStorage.getItem('access_token');
+    const trackId = getCurrentTrackId(); // Obtém o ID da faixa atual
+
+    if (!trackId) {
+        alert('Nenhuma faixa está atualmente reproduzindo.');
+        return;
+    }
+
+    try {
+        // Adiciona a faixa à biblioteca do usuário
+        const response = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (response.status === 200 || response.status === 204) {
+            alert('Faixa adicionada aos seus favoritos!');
+        } else {
+            const error = await response.json();
+            console.error('Erro ao adicionar faixa aos favoritos:', error);
+            alert('Não foi possível adicionar a faixa aos favoritos.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição para adicionar faixa:', error);
+        alert('Ocorreu um erro ao tentar adicionar a faixa aos favoritos.');
+    }
+}
 
 /* 
-  Manipulador de clique no botão de Favoritar.
-  Salva a música atual na playlist do usuário.
+  Event Listener para o botão de Favoritar.
+  Chama a função para salvar a música atual quando clicado.
 */
 document.getElementById('btn-favorite').addEventListener('click', async (e) => {
-  e.preventDefault(); // Evita o comportamento padrão do link
-  const token = localStorage.getItem('access_token');
-  const trackId = getCurrentTrackId(); // Função que retorna o ID da faixa atual
-
-  if (!trackId) {
-    alert('Nenhuma faixa está atualmente reproduzindo.');
-    return;
-  }
-
-  try {
-    // Adiciona a faixa à biblioteca do usuário
-    const response = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-    });
-
-    if (response.status === 200 || response.status === 204) {
-      alert('Faixa adicionada aos seus favoritos!');
-    } else {
-      const error = await response.json();
-      console.error('Erro ao adicionar faixa aos favoritos:', error);
-      alert('Não foi possível adicionar a faixa aos favoritos.');
-    }
-  } catch (error) {
-    console.error('Erro na requisição para adicionar faixa:', error);
-    alert('Ocorreu um erro ao tentar adicionar a faixa aos favoritos.');
-  }
+    e.preventDefault(); // Evita o comportamento padrão do link
+    await saveCurrentTrack();
 });
 
 /* 
@@ -587,202 +758,22 @@ document.getElementById('btn-favorite').addEventListener('click', async (e) => {
   Verifica o player para retornar o ID da música que está sendo reproduzida.
 */
 function getCurrentTrackId() {
-  const currentTrackElement = document.getElementById('current-track');
-  // Implementar lógica para obter o ID da faixa atual
-  // Isso pode depender de como os dados da faixa estão sendo armazenados
-  // Exemplo: retornar um atributo data-id na div ou elemento correspondente
-  return currentTrackElement.getAttribute('data-id') || null;
+    const currentTrackElement = document.getElementById('current-track');
+    return currentTrackElement.getAttribute('data-id') || null;
 }
-
-/* 
-  Função para alternar entre Play e Pause ao clicar no botão play/pause.
-  Atualiza o ícone conforme o estado da reprodução.
-*/
-document.getElementById('btn-play-pause').addEventListener('click', async (e) => {
-  e.preventDefault(); // Evita o comportamento padrão do link
-
-  const icon = document.getElementById('icon-play-pause');
-  const token = localStorage.getItem('access_token');
-  const device_id = localStorage.getItem('device_id');
-
-  if (!device_id) {
-    alert('Player não está pronto.');
-    return;
-  }
-
-  try {
-    // Verifica o estado atual da reprodução
-    const response = await fetch('https://api.spotify.com/v1/me/player', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (response.status === 204) {
-      // Nenhuma reprodução está ocorrendo, iniciar reprodução
-      await play();
-    } else if (response.status === 200) {
-      const data = await response.json();
-      if (data.is_playing) {
-        // Se estiver tocando, pausar
-        await pause();
-      } else {
-        // Se estiver pausado, reproduzir
-        await play();
-      }
-    } else {
-      console.error('Erro ao verificar o estado do player:', response.status);
-    }
-  } catch (error) {
-    console.error('Erro ao alternar Play/Pause:', error);
-  }
-});
-
-/* 
-  Função para tornar os controles de reprodução interativos.
-  Inclui a barra de progresso e a barra de volume.
-*/
-document.addEventListener('DOMContentLoaded', () => {
-  const btnNext = document.getElementById('btn-next');
-  const btnPrev = document.getElementById('btn-prev');
-  const btnVolume = document.getElementById('btn-volume');
-  const volumeBar = document.getElementById('volume-bar');
-  const progressBar = document.getElementById('progress-bar');
-  const currentTimeEl = document.getElementById('current-time');
-  const totalDurationEl = document.getElementById('total-duration');
-  const handleMain = document.getElementById('handle-main');
-  const handleVolume = document.getElementById('handle-volume');
-
-  /* 
-    Event Listener para o botão Próximo
-    Avança para a próxima faixa quando clicado.
-  */
-  if (btnNext) {
-    btnNext.addEventListener('click', async (e) => {
-      e.preventDefault();
-      await nextTrack();
-    });
-  }
-
-  /* 
-    Event Listener para o botão Anterior
-    Retrocede para a faixa anterior quando clicado.
-  */
-  if (btnPrev) {
-    btnPrev.addEventListener('click', async (e) => {
-      e.preventDefault();
-      await previousTrack();
-    });
-  }
-
-  /* 
-    Event Listener para o botão de Volume
-    Alterna entre mute e ativar o som, além de mudar o ícone.
-  */
-  if (btnVolume) {
-    btnVolume.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const token = localStorage.getItem('access_token');
-      const player = window.spotifyPlayer;
-
-      if (!player) {
-        alert('Player não está pronto.');
-        return;
-      }
-
-      try {
-        const currentVolume = await player.getVolume();
-        if (currentVolume > 0) {
-          await player.setVolume(0); // Muta o som
-          // Atualiza o ícone para volume mute
-          btnVolume.querySelector('i').classList.remove('fa-volume-up');
-          btnVolume.querySelector('i').classList.add('fa-volume-mute');
-        } else {
-          await player.setVolume(0.5); // Define volume para 50%
-          // Atualiza o ícone para volume up
-          btnVolume.querySelector('i').classList.remove('fa-volume-mute');
-          btnVolume.querySelector('i').classList.add('fa-volume-up');
-        }
-      } catch (error) {
-        console.error('Erro ao alternar Volume:', error);
-      }
-    });
-  }
-
-  /* 
-    Event Listener para a barra de volume
-    Atualiza o volume do player conforme a interação do usuário.
-  */
-  if (volumeBar) {
-    volumeBar.addEventListener('input', async (e) => {
-      const volume = parseInt(e.target.value) / 100;
-      const player = window.spotifyPlayer;
-      if (player) {
-        await player.setVolume(volume).then(() => {
-          console.log(`Volume set to ${volume * 100}%`);
-        });
-      }
-    });
-  }
-
-  /* 
-    Event Listener para a barra de progresso
-    Atualiza a barra de progresso e o tempo conforme a música avança.
-  */
-  if (progressBar) {
-    progressBar.addEventListener('input', (e) => {
-      const progress = parseInt(e.target.value);
-      // Implementar funcionalidade de busca se desejado
-      // Atualmente, o Spotify Web Playback SDK não suporta busca via API
-    });
-  }
-
-  /* 
-    Atualiza a barra de progresso e o tempo a cada segundo.
-    Mantém a sincronização com o estado atual da reprodução.
-  */
-  setInterval(async () => {
-    const token = localStorage.getItem('access_token');
-    const device_id = localStorage.getItem('device_id');
-    if (!device_id) return;
-
-    try {
-      const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.status === 200) {
-        const data = await response.json();
-        if (data && data.item && data.progress_ms !== undefined && data.item.duration_ms !== undefined) {
-          const progress = (data.progress_ms / data.item.duration_ms) * 100;
-          progressBar.value = progress;
-
-          const currentTime = msToTime(data.progress_ms);
-          const totalDuration = msToTime(data.item.duration_ms);
-          currentTimeEl.textContent = currentTime;
-          totalDurationEl.textContent = totalDuration;
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar a barra de progresso:', error);
-    }
-  }, 1000);
-});
 
 /* 
   Função para converter milissegundos para tempo no formato mm:ss.
   Facilita a exibição do tempo atual e total da música.
 */
 function msToTime(duration) {
-  let seconds = Math.floor((duration / 1000) % 60),
-      minutes = Math.floor((duration / (1000 * 60)) % 60);
+    let seconds = Math.floor((duration / 1000) % 60),
+        minutes = Math.floor((duration / (1000 * 60)) % 60);
 
-  minutes = (minutes < 10) ? "0" + minutes : minutes;
-  seconds = (seconds < 10) ? "0" + seconds : seconds;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
 
-  return minutes + ":" + seconds;
+    return minutes + ":" + seconds;
 }
 
 /* 
@@ -791,41 +782,41 @@ function msToTime(duration) {
 */
 document.addEventListener('DOMContentLoaded', function() {
     function makeDraggable(handle, progressBar, callback) {
-      let isDragging = false;
+        let isDragging = false;
 
-      handle.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        isDragging = true;
-      });
+        handle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            isDragging = true;
+        });
 
-      document.addEventListener('mousemove', function(e) {
-        if (!isDragging) return;
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
 
-        const rect = progressBar.getBoundingClientRect();
-        let offsetX = e.clientX - rect.left;
+            const rect = progressBar.getBoundingClientRect();
+            let offsetX = e.clientX - rect.left;
 
-        // Limitar o offsetX entre 0 e a largura do progress bar
-        offsetX = Math.max(0, Math.min(offsetX, rect.width));
+            // Limitar o offsetX entre 0 e a largura do progress bar
+            offsetX = Math.max(0, Math.min(offsetX, rect.width));
 
-        // Calcular a porcentagem
-        const percent = (offsetX / rect.width) * 100;
+            // Calcular a porcentagem
+            const percent = (offsetX / rect.width) * 100;
 
-        // Atualizar a posição da bolinha
-        handle.style.left = percent + '%';
+            // Atualizar a posição da bolinha
+            handle.style.left = percent + '%';
 
-        // Atualizar a largura da barra de progresso
-        const progress = progressBar.querySelector('.progress-bar');
-        progress.style.width = percent + '%';
+            // Atualizar a largura da barra de progresso
+            const progress = progressBar.querySelector('.progress-bar');
+            progress.style.width = percent + '%';
 
-        // Chamar o callback com a porcentagem
-        if (callback) callback(percent);
-      });
+            // Chamar o callback com a porcentagem
+            if (callback) callback(percent);
+        });
 
-      document.addEventListener('mouseup', function() {
-        if (isDragging) {
-          isDragging = false;
-        }
-      });
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+            }
+        });
     }
 
     // Selecionar os elementos da barra principal
@@ -837,19 +828,70 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressVolume = document.getElementById('progress-volume');
 
     // Tornar as bolinhas arrastáveis
-    makeDraggable(handleMain, progressMain, function(percent) {
-      console.log('Progresso da Música:', percent + '%');
-      // Atualize a reprodução da música conforme a porcentagem
-      // OBS: O Spotify Web Playback SDK não suporta seek via API
+    makeDraggable(handleMain, progressMain, async function(percent) {
+        console.log('Progresso da Música:', percent + '%');
+        // Implementar a funcionalidade de seek
+        const player = window.spotifyPlayer;
+        if (player) {
+            const token = localStorage.getItem('access_token');
+            const device_id = localStorage.getItem('device_id');
+
+            try {
+                const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                if (data && data.item && data.item.duration_ms) {
+                    const position_ms = (percent / 100) * data.item.duration_ms;
+                    await player.seek(position_ms);
+                    console.log(`Seek para ${position_ms} ms`);
+                }
+            } catch (error) {
+                console.error('Erro ao realizar seek:', error);
+            }
+        }
     });
 
     makeDraggable(handleVolume, progressVolume, function(percent) {
-      console.log('Volume:', percent + '%');
-      // Atualize o volume conforme a porcentagem
-      const player = window.spotifyPlayer;
-      if (player) {
-        player.setVolume(percent / 100);
-      }
+        console.log('Volume:', percent + '%');
+        // Atualizar o volume conforme a porcentagem
+        const player = window.spotifyPlayer;
+        if (player) {
+            player.setVolume(percent / 100).then(() => {
+                console.log(`Volume set to ${percent}%`);
+            });
+        }
+    });
+
+    // Event Listener para a barra de progresso
+    document.getElementById('progress-main').addEventListener('click', async (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const percent = (offsetX / rect.width) * 100;
+
+        const player = window.spotifyPlayer;
+        if (player) {
+            const token = localStorage.getItem('access_token');
+            const device_id = localStorage.getItem('device_id');
+
+            try {
+                const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                if (data && data.item && data.item.duration_ms) {
+                    const position_ms = (percent / 100) * data.item.duration_ms;
+                    await player.seek(position_ms);
+                    console.log(`Seek para ${position_ms} ms`);
+                }
+            } catch (error) {
+                console.error('Erro ao realizar seek:', error);
+            }
+        }
     });
 });
 
@@ -858,35 +900,35 @@ document.addEventListener('DOMContentLoaded', function() {
   Utiliza a API do Spotify para adicionar a faixa à biblioteca.
 */
 async function saveCurrentTrack() {
-  const token = localStorage.getItem('access_token');
-  const trackId = getCurrentTrackId(); // Função que retorna o ID da faixa atual
+    const token = localStorage.getItem('access_token');
+    const trackId = getCurrentTrackId(); // Obtém o ID da faixa atual
 
-  if (!trackId) {
-    alert('Nenhuma faixa está atualmente reproduzindo.');
-    return;
-  }
-
-  try {
-    // Adiciona a faixa à biblioteca do usuário
-    const response = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-    });
-
-    if (response.status === 200 || response.status === 204) {
-      alert('Faixa adicionada aos seus favoritos!');
-    } else {
-      const error = await response.json();
-      console.error('Erro ao adicionar faixa aos favoritos:', error);
-      alert('Não foi possível adicionar a faixa aos favoritos.');
+    if (!trackId) {
+        alert('Nenhuma faixa está atualmente reproduzindo.');
+        return;
     }
-  } catch (error) {
-    console.error('Erro na requisição para adicionar faixa:', error);
-    alert('Ocorreu um erro ao tentar adicionar a faixa aos favoritos.');
-  }
+
+    try {
+        // Adiciona a faixa à biblioteca do usuário
+        const response = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (response.status === 200 || response.status === 204) {
+            alert('Faixa adicionada aos seus favoritos!');
+        } else {
+            const error = await response.json();
+            console.error('Erro ao adicionar faixa aos favoritos:', error);
+            alert('Não foi possível adicionar a faixa aos favoritos.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição para adicionar faixa:', error);
+        alert('Ocorreu um erro ao tentar adicionar a faixa aos favoritos.');
+    }
 }
 
 /* 
@@ -894,6 +936,288 @@ async function saveCurrentTrack() {
   Chama a função para salvar a música atual quando clicado.
 */
 document.getElementById('btn-favorite').addEventListener('click', async (e) => {
-  e.preventDefault(); // Evita o comportamento padrão do link
-  await saveCurrentTrack();
+    e.preventDefault(); // Evita o comportamento padrão do link
+    await saveCurrentTrack();
 });
+
+/* 
+  Função para obter o ID da faixa atual.
+  Verifica o player para retornar o ID da música que está sendo reproduzida.
+*/
+function getCurrentTrackId() {
+    const currentTrackElement = document.getElementById('current-track');
+    return currentTrackElement.getAttribute('data-id') || null;
+}
+
+/* 
+  Função para converter milissegundos para tempo no formato mm:ss.
+  Facilita a exibição do tempo atual e total da música.
+*/
+function msToTime(duration) {
+    let seconds = Math.floor((duration / 1000) % 60),
+        minutes = Math.floor((duration / (1000 * 60)) % 60);
+
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+    return minutes + ":" + seconds;
+}
+
+/* 
+  Função para implementar a barra de seek utilizando o método Spotify.Player#seek.
+  Atualiza a posição da reprodução conforme o usuário interage com o slider.
+*/
+document.addEventListener('DOMContentLoaded', () => {
+    const btnNext = document.getElementById('btn-next');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnVolume = document.getElementById('btn-volume');
+    const volumeBar = document.getElementById('volume-bar');
+    const progressBar = document.getElementById('progress-bar');
+    const currentTimeEl = document.getElementById('current-time');
+    const totalDurationEl = document.getElementById('total-duration');
+    const handleMain = document.getElementById('handle-main');
+    const handleVolume = document.getElementById('handle-volume');
+
+    /* 
+      Event Listener para o botão Próximo
+      Avança para a próxima faixa quando clicado.
+    */
+    if (btnNext) {
+        btnNext.addEventListener('click', debounce(async (e) => {
+            e.preventDefault();
+            await nextTrack();
+        }, 300)); // Debounce de 300ms
+    }
+
+    /* 
+      Event Listener para o botão Anterior
+      Retrocede para a faixa anterior quando clicado.
+    */
+    if (btnPrev) {
+        btnPrev.addEventListener('click', debounce(async (e) => {
+            e.preventDefault();
+            await previousTrack();
+        }, 300)); // Debounce de 300ms
+    }
+
+    /* 
+      Event Listener para o botão de Volume
+      Alterna entre mute e ativar o som, além de mudar o ícone.
+    */
+    if (btnVolume) {
+        btnVolume.addEventListener('click', debounce(async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('access_token');
+            const player = window.spotifyPlayer;
+
+            if (!player) {
+                alert('Player não está pronto.');
+                return;
+            }
+
+            try {
+                const currentVolume = await player.getVolume();
+                if (currentVolume > 0) {
+                    await player.setVolume(0); // Muta o som
+                    // Atualiza o ícone para volume mute
+                    btnVolume.querySelector('i').classList.remove('fa-volume-up');
+                    btnVolume.querySelector('i').classList.add('fa-volume-mute');
+                } else {
+                    await player.setVolume(0.5); // Define volume para 50%
+                    // Atualiza o ícone para volume up
+                    btnVolume.querySelector('i').classList.remove('fa-volume-mute');
+                    btnVolume.querySelector('i').classList.add('fa-volume-up');
+                }
+            } catch (error) {
+                console.error('Erro ao alternar Volume:', error);
+            }
+        }, 300)); // Debounce de 300ms
+    }
+
+    /* 
+      Event Listener para a barra de volume
+      Atualiza o volume do player conforme a interação do usuário.
+    */
+    if (volumeBar) {
+        volumeBar.addEventListener('input', debounce(async (e) => {
+            const volume = parseInt(e.target.value) / 100;
+            const player = window.spotifyPlayer;
+            if (player) {
+                await player.setVolume(volume).then(() => {
+                    console.log(`Volume set to ${volume * 100}%`);
+                });
+            }
+        }, 300)); // Debounce de 300ms
+    }
+
+    /* 
+      Atualiza a barra de progresso e o tempo a cada segundo.
+      Mantém a sincronização com o estado atual da reprodução.
+    */
+    setInterval(async () => {
+        const token = localStorage.getItem('access_token');
+        const device_id = localStorage.getItem('device_id');
+        if (!device_id) return;
+
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                if (data && data.item && data.progress_ms !== undefined && data.item.duration_ms !== undefined) {
+                    const progress = (data.progress_ms / data.item.duration_ms) * 100;
+                    progressBar.value = progress;
+                    progressBar.style.width = `${progress}%`;
+                    handleMain.style.left = `${progress}%`;
+
+                    const currentTime = msToTime(data.progress_ms);
+                    const totalDuration = msToTime(data.item.duration_ms);
+                    currentTimeEl.textContent = currentTime;
+                    totalDurationEl.textContent = totalDuration;
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar a barra de progresso:', error);
+        }
+    }, 1000);
+});
+
+/* 
+  Função debounce
+  Evita que múltiplas requisições sejam enviadas rapidamente.
+*/
+function debounce(func, delay) {
+    let debounceTimer;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func.apply(context, args), delay);
+    }
+}
+
+/* 
+  Função para tornar elementos arrastáveis (bolinhas nas barras de progresso e volume).
+  Permite que o usuário interaja diretamente com as barras.
+*/
+document.addEventListener('DOMContentLoaded', function() {
+    function makeDraggable(handle, progressBar, callback) {
+        let isDragging = false;
+
+        handle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            isDragging = true;
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+
+            const rect = progressBar.getBoundingClientRect();
+            let offsetX = e.clientX - rect.left;
+
+            // Limitar o offsetX entre 0 e a largura do progress bar
+            offsetX = Math.max(0, Math.min(offsetX, rect.width));
+
+            // Calcular a porcentagem
+            const percent = (offsetX / rect.width) * 100;
+
+            // Atualizar a posição da bolinha
+            handle.style.left = percent + '%';
+
+            // Atualizar a largura da barra de progresso
+            const progress = progressBar.querySelector('.progress-bar');
+            progress.style.width = percent + '%';
+
+            // Chamar o callback com a porcentagem
+            if (callback) callback(percent);
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+            }
+        });
+    }
+
+    // Selecionar os elementos da barra principal
+    const handleMain = document.getElementById('handle-main');
+    const progressMain = document.getElementById('progress-main');
+
+    // Selecionar os elementos da barra de volume
+    const handleVolume = document.getElementById('handle-volume');
+    const progressVolume = document.getElementById('progress-volume');
+
+    // Tornar as bolinhas arrastáveis
+    makeDraggable(handleMain, progressMain, async function(percent) {
+        console.log('Progresso da Música:', percent + '%');
+        // Implementar a funcionalidade de seek
+        const player = window.spotifyPlayer;
+        if (player) {
+            const token = localStorage.getItem('access_token');
+            const device_id = localStorage.getItem('device_id');
+
+            try {
+                const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                if (data && data.item && data.item.duration_ms) {
+                    const position_ms = (percent / 100) * data.item.duration_ms;
+                    await player.seek(position_ms);
+                    console.log(`Seek para ${position_ms} ms`);
+                }
+            } catch (error) {
+                console.error('Erro ao realizar seek:', error);
+            }
+        }
+    });
+
+    makeDraggable(handleVolume, progressVolume, function(percent) {
+        console.log('Volume:', percent + '%');
+        // Atualizar o volume conforme a porcentagem
+        const player = window.spotifyPlayer;
+        if (player) {
+            player.setVolume(percent / 100).then(() => {
+                console.log(`Volume set to ${percent}%`);
+            });
+        }
+    });
+});
+
+/* 
+  Função para mostrar o modal de confirmação
+*/
+function mostrarConfirmacao() {
+    $('#modalExercicio').modal('hide');
+
+    document.getElementById('confirm-titulo').textContent = exercicioTemp.nome;
+    document.getElementById('confirm-nome-video').textContent = exercicioTemp.videoTitulo;
+
+    const confirmPreviewVideoDiv = document.getElementById('confirm-preview-video');
+    confirmPreviewVideoDiv.innerHTML = '';
+
+    let videoID = '';
+    if (exercicioTemp.modo === 'link') {
+        videoID = extrairVideoID(exercicioTemp.link);
+    } else if (exercicioTemp.modo === 'pesquisa') {
+        videoID = exercicioTemp.videoId;
+    }
+
+    if (videoID) {
+        confirmPreviewVideoDiv.innerHTML = `
+            <div class="embed-responsive embed-responsive-16by9">
+                <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/${videoID}" allowfullscreen></iframe>
+            </div>
+        `;
+    } else {
+        confirmPreviewVideoDiv.innerHTML = '<p>Vídeo não disponível</p>';
+    }
+
+    $('#modalConfirmacao').modal('show');
+}
