@@ -908,49 +908,44 @@ function mostrarConfirmacao() {
 
 
 /*   SEEK     */
+
+
 document.addEventListener('DOMContentLoaded', function() {
+    // ------------------------------
     // Seleção de Elementos
+    // ------------------------------
+    
+    // Controle de Seek (Progresso da Música)
     const handleMain = document.getElementById('handle-main');
     const progressMain = document.getElementById('progress-main');
     const progressBarMain = document.getElementById('progress-bar');
     const currentTimeEl = document.getElementById('current-time');
     const totalDurationEl = document.getElementById('total-duration');
 
+    // Controle de Volume
     const handleVolume = document.getElementById('handle-volume');
     const progressVolume = document.getElementById('progress-volume');
     const volumeBar = document.getElementById('volume-bar');
     const btnVolume = document.getElementById('btn-volume');
 
-    // Estado de Arrasto
-    let isDraggingSeek = false;
-    let finalPercentSeek = 0;
+    // ------------------------------
+    // Funções Utilitárias
+    // ------------------------------
 
-    // Função de Throttle para Limitar a Frequência das Requisições de Volume
-    function throttle(func, limit) {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        }
-    }
-
-    // Função para Converter Milissegundos em Formato de Tempo (m:ss)
+    // Função para converter milissegundos em formato de tempo (m:ss)
     function msToTime(duration) {
         const seconds = Math.floor((duration / 1000) % 60);
         const minutes = Math.floor((duration / (1000 * 60)) % 60);
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
 
-    // Função para Atualizar a UI
+    // Função para atualizar a UI da barra (handle e progress bar)
     function updateUI(handle, progressBar, percent) {
         handle.style.left = `${percent}%`;
         progressBar.style.width = `${percent}%`;
     }
 
-    // Função para Realizar Seek na API do Spotify
+    // Função para realizar seek na API do Spotify
     async function performSeek(percent) {
         const player = window.spotifyPlayer;
         if (player) {
@@ -973,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Função para Atualizar o Volume na API do Spotify
+    // Função para atualizar o volume na API do Spotify
     async function performVolumeUpdate(percent) {
         const player = window.spotifyPlayer;
         if (player) {
@@ -987,15 +982,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Manipuladores para o Controle de Seek
+    // Função de throttle para limitar a frequência das chamadas
+    function throttle(func, limit) {
+        let lastFunc;
+        let lastRan;
+        return function(...args) {
+            const context = this;
+            if (!lastRan) {
+                func.apply(context, args);
+                lastRan = Date.now();
+            } else {
+                clearTimeout(lastFunc);
+                lastFunc = setTimeout(function() {
+                    if ((Date.now() - lastRan) >= limit) {
+                        func.apply(context, args);
+                        lastRan = Date.now();
+                    }
+                }, limit - (Date.now() - lastRan));
+            }
+        }
+    }
 
-    // Iniciar Arrasto do Seek
+    // Função de debounce para limitar a execução de funções
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        }
+    }
+
+    // ------------------------------
+    // Controle de Seek
+    // ------------------------------
+
+    let isDraggingSeek = false;
+    let finalPercentSeek = 0;
+
+    // Iniciar arrasto do seek
     handleMain.addEventListener('mousedown', function(e) {
         e.preventDefault();
         isDraggingSeek = true;
     });
 
-    // Atualizar UI durante o Arrasto do Seek
+    // Atualizar UI durante o arrasto do seek
     document.addEventListener('mousemove', function(e) {
         if (!isDraggingSeek) return;
 
@@ -1008,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', function() {
         finalPercentSeek = percent;
     });
 
-    // Finalizar Arrasto do Seek e Realizar Seek na API
+    // Finalizar arrasto do seek e realizar seek na API
     document.addEventListener('mouseup', function() {
         if (isDraggingSeek) {
             isDraggingSeek = false;
@@ -1016,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Manipulador para Cliques na Barra de Seek
+    // Permitir que o usuário clique na barra de seek para realizar seek imediato
     progressMain.addEventListener('click', async (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const offsetX = e.clientX - rect.left;
@@ -1026,18 +1056,21 @@ document.addEventListener('DOMContentLoaded', function() {
         await performSeek(percent);
     });
 
-    // Manipuladores para o Controle de Volume
+    // ------------------------------
+    // Controle de Volume
+    // ------------------------------
 
-    // Iniciar Arrasto do Volume
+    let isDraggingVolume = false;
+    const throttledVolumeUpdate = throttle(performVolumeUpdate, 100); // Limita a 10 chamadas por segundo
+
+    // Iniciar arrasto do volume
     handleVolume.addEventListener('mousedown', function(e) {
         e.preventDefault();
         isDraggingVolume = true;
     });
 
-    let isDraggingVolume = false;
-
-    // Atualizar UI e Volume durante o Arrasto do Volume com Throttle
-    document.addEventListener('mousemove', throttle(function(e) {
+    // Atualizar UI e enviar requisição de volume durante o arrasto
+    document.addEventListener('mousemove', function(e) {
         if (!isDraggingVolume) return;
 
         const rect = progressVolume.getBoundingClientRect();
@@ -1045,18 +1078,21 @@ document.addEventListener('DOMContentLoaded', function() {
         offsetX = Math.max(0, Math.min(offsetX, rect.width));
         const percent = (offsetX / rect.width) * 100;
 
+        // Atualiza a UI imediatamente
         updateUI(handleVolume, volumeBar, percent);
-        performVolumeUpdate(percent);
-    }, 100)); // Throttle para 100ms
 
-    // Finalizar Arrasto do Volume
+        // Envia a atualização de volume de forma throttled
+        throttledVolumeUpdate(percent);
+    });
+
+    // Finalizar arrasto do volume
     document.addEventListener('mouseup', function() {
         if (isDraggingVolume) {
             isDraggingVolume = false;
         }
     });
 
-    // Manipulador para Cliques na Barra de Volume
+    // Permitir que o usuário clique na barra de volume para ajustar imediatamente
     progressVolume.addEventListener('click', async (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const offsetX = e.clientX - rect.left;
@@ -1066,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', function() {
         await performVolumeUpdate(percent);
     });
 
-    // Manipulador para o Botão de Volume (Mute/Unmute)
+    // Manipulador para o botão de volume (Mute/Unmute)
     if (btnVolume) {
         btnVolume.addEventListener('click', debounce(async (e) => {
             e.preventDefault();
@@ -1081,14 +1117,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const currentVolume = await player.getVolume();
                 if (currentVolume > 0) {
                     await player.setVolume(0); // Muta o som
-                    // Atualiza o handle e a barra de volume
                     updateUI(handleVolume, volumeBar, 0);
                     // Atualiza o ícone para volume mute
                     btnVolume.querySelector('i').classList.remove('fa-volume-up');
                     btnVolume.querySelector('i').classList.add('fa-volume-mute');
                 } else {
                     await player.setVolume(50 / 100); // Define volume para 50%
-                    // Atualiza o handle e a barra de volume
                     updateUI(handleVolume, volumeBar, 50);
                     // Atualiza o ícone para volume up
                     btnVolume.querySelector('i').classList.remove('fa-volume-mute');
@@ -1100,16 +1134,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300)); // Debounce de 300ms
     }
 
-    // Função de Debounce para Limitar a Frequência de Execução
-    function debounce(func, delay) {
-        let timeout;
-        return function(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), delay);
-        }
-    }
+    // ------------------------------
+    // Atualização Periódica da Barra de Progresso
+    // ------------------------------
 
-    // Atualiza a Barra de Progresso e o Tempo a Cada Segundo
     setInterval(async () => {
         const token = localStorage.getItem('access_token');
         const device_id = localStorage.getItem('device_id');
