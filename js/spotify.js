@@ -149,7 +149,10 @@ async function exchangeCodeForToken(code) {
       }
       
       // Inicia a sincronização do player após autenticação
-      startPlayerSync();
+        startPlayerSync();
+
+        // Opcional: Mostrar o player imediatamente após a autenticação
+        showPlayer();
     } else {
       console.error('Erro ao obter o token:', data);
     }
@@ -624,59 +627,63 @@ async function previousTrack() {
   Configura o player, conecta e adiciona listeners para eventos relevantes.
 */
 window.onSpotifyWebPlaybackSDKReady = () => {
-  if (isAuthenticated()) {
-    const token = localStorage.getItem('access_token');
-    const player = new Spotify.Player({
-      name: 'Minha Academia Player',
-      getOAuthToken: cb => { cb(token); },
-      volume: 0.5
-    });
+    if (isAuthenticated()) {
+        const token = localStorage.getItem('access_token');
+        const player = new Spotify.Player({
+        name: 'Minha Academia Player',
+        getOAuthToken: cb => { cb(token); },
+        volume: 0.5
+        });
 
-    // Conecte-se ao player
-    player.connect().then(success => {
-      if (success) {
-        console.log('Conectado ao Spotify Player.');
-      } else {
-        console.error('Falha ao conectar ao Spotify Player.');
-      }
-    });
+        // Conecte-se ao player
+        player.connect().then(success => {
+        if (success) {
+            console.log('Conectado ao Spotify Player.');
+        } else {
+            console.error('Falha ao conectar ao Spotify Player.');
+        }
+        });
 
-    /* 
-      Eventos do player
-      - ready: Quando o player está pronto e recebe um device_id
-      - not_ready: Quando o player não está pronto
-      - player_state_changed: Quando o estado da reprodução muda
+        /* 
+        Eventos do player
+        - ready: Quando o player está pronto e recebe um device_id
+        - not_ready: Quando o player não está pronto
+        - player_state_changed: Quando o estado da reprodução muda
+        */
+        player.addListener('ready', ({ device_id }) => {
+        console.log('Player está pronto com o ID:', device_id);
+        localStorage.setItem('device_id', device_id);
+        // Transferir a reprodução para este player
+        transferPlaybackHere(device_id);
+        });
+
+        player.addListener('not_ready', ({ device_id }) => {
+        console.log('Player não está pronto com o ID:', device_id);
+        });
+
+        player.addListener('player_state_changed', state => {
+        if (!state) {
+            return;
+        }
+        const currentTrack = state.track_window.current_track;
+        updatePlayerUI(currentTrack);
+        });
+
+        // Armazene o player para uso posterior
+        window.spotifyPlayer = player;
+
+        // Iniciar a sincronização do player
+        startPlayerSync();
+    }
+    // Remover ou comentar a exibição automática do modal de login
+    /*
+    else {
+        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        loginModal.show();
+    }
     */
-    player.addListener('ready', ({ device_id }) => {
-      console.log('Player está pronto com o ID:', device_id);
-      localStorage.setItem('device_id', device_id);
-      // Transferir a reprodução para este player
-      transferPlaybackHere(device_id);
-    });
-
-    player.addListener('not_ready', ({ device_id }) => {
-      console.log('Player não está pronto com o ID:', device_id);
-    });
-
-    player.addListener('player_state_changed', state => {
-      if (!state) {
-        return;
-      }
-      const currentTrack = state.track_window.current_track;
-      updatePlayerUI(currentTrack);
-    });
-
-    // Armazene o player para uso posterior
-    window.spotifyPlayer = player;
-
-    // Iniciar a sincronização do player
-    startPlayerSync();
-  } else {
-    // Mostrar o modal de login se não estiver autenticado
-    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-    loginModal.show();
-  }
-};
+    };
+  
 
 /* 
   Função para exibir o player no footer.
@@ -700,13 +707,24 @@ function hidePlayer() {
   Alterna entre mostrar e esconder o player.
 */
 document.getElementById('spotifyBtn').addEventListener('click', () => {
-  const player = document.getElementById('spotify-player');
-  if (player.style.display === 'none' || player.style.display === '') {
-    showPlayer();
-  } else {
-    hidePlayer();
-  }
-});
+    if (isAuthenticated()) {
+      const player = document.getElementById('spotify-player');
+      if (player.style.display === 'none' || player.style.display === '') {
+        showPlayer();
+      } else {
+        hidePlayer();
+      }
+    } else {
+      const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+      loginModal.show();
+    }
+  });
+
+  document.getElementById('loginButton').addEventListener('click', (e) => {
+    e.preventDefault();
+    initiateAuth();
+  });
+  
 
 /* 
   Função para salvar a música atual nos favoritos do usuário.
@@ -949,19 +967,6 @@ function getCurrentTrackId() {
     return currentTrackElement.getAttribute('data-id') || null;
 }
 
-/* 
-  Função para converter milissegundos para tempo no formato mm:ss.
-  Facilita a exibição do tempo atual e total da música.
-*/
-function msToTime(duration) {
-    let seconds = Math.floor((duration / 1000) % 60),
-        minutes = Math.floor((duration / (1000 * 60)) % 60);
-
-    minutes = (minutes < 10) ? "0" + minutes : minutes;
-    seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-    return minutes + ":" + seconds;
-}
 
 /* 
   Função para implementar a barra de seek utilizando o método Spotify.Player#seek.
