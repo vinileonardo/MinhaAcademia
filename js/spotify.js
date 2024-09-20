@@ -916,7 +916,6 @@ document.addEventListener('DOMContentLoaded', function() {
     VolumeModule.init();
 });
 
-
 const SeekModule = (function() {
     // Seleção de Elementos
     const handleMain = document.getElementById('handle-main');
@@ -924,6 +923,11 @@ const SeekModule = (function() {
     const progressBarMain = document.getElementById('progress-bar');
     const currentTimeEl = document.getElementById('current-time');
     const totalDurationEl = document.getElementById('total-duration');
+
+    // Tooltip para Seek
+    const tooltipSeek = document.createElement('div');
+    tooltipSeek.classList.add('tooltip-seek');
+    document.body.appendChild(tooltipSeek);
 
     // Estado de Arrasto
     let isDraggingSeek = false;
@@ -956,11 +960,25 @@ const SeekModule = (function() {
                     const position_ms = (percent / 100) * data.item.duration_ms;
                     await player.seek(position_ms);
                     console.log(`Seek para ${position_ms} ms`);
+                    // Atualiza o estado no localStorage
+                    localStorage.setItem('seek_percent', percent);
                 }
             } catch (error) {
                 console.error('Erro ao realizar seek:', error);
             }
         }
+    }
+
+    // Função para Exibir Tooltip
+    function showTooltip(x, y, text) {
+        tooltipSeek.style.left = `${x}px`;
+        tooltipSeek.style.top = `${y}px`;
+        tooltipSeek.textContent = text;
+        tooltipSeek.style.display = 'block';
+    }
+
+    function hideTooltip() {
+        tooltipSeek.style.display = 'none';
     }
 
     // Manipuladores de Eventos
@@ -979,11 +997,35 @@ const SeekModule = (function() {
 
         updateUI(handleMain, progressBarMain, percent);
         finalPercentSeek = percent;
+
+        // Atualiza o Tooltip
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.item && data.item.duration_ms) {
+                    const seekTimeMs = (percent / 100) * data.item.duration_ms;
+                    const seekTime = msToTime(seekTimeMs);
+                    const tooltipX = e.clientX;
+                    const tooltipY = rect.top - 30; // Posição acima da barra
+                    showTooltip(tooltipX, tooltipY, seekTime);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados para tooltip de seek:', error);
+            });
+        }
     }
 
     function handleMouseUp() {
         if (isDraggingSeek) {
             isDraggingSeek = false;
+            hideTooltip();
             performSeek(finalPercentSeek);
         }
     }
@@ -1019,6 +1061,9 @@ const SeekModule = (function() {
                     const totalDuration = msToTime(data.item.duration_ms);
                     currentTimeEl.textContent = currentTime;
                     totalDurationEl.textContent = totalDuration;
+
+                    // Atualiza o estado no localStorage
+                    localStorage.setItem('seek_percent', progress);
                 }
             }
         } catch (error) {
@@ -1028,6 +1073,12 @@ const SeekModule = (function() {
 
     // Inicialização do Módulo
     function init() {
+        // Carrega o estado anterior do seek
+        const savedSeekPercent = parseFloat(localStorage.getItem('seek_percent'));
+        if (!isNaN(savedSeekPercent)) {
+            updateUI(handleMain, progressBarMain, savedSeekPercent);
+        }
+
         handleMain.addEventListener('mousedown', handleMouseDown);
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
@@ -1042,13 +1093,17 @@ const SeekModule = (function() {
     };
 })();
 
-
 const VolumeModule = (function() {
     // Seleção de Elementos
     const handleVolume = document.getElementById('handle-volume');
     const progressVolume = document.getElementById('progress-volume');
     const volumeBar = document.getElementById('volume-bar');
     const btnVolume = document.getElementById('btn-volume');
+
+    // Tooltip para Volume
+    const tooltipVolume = document.createElement('div');
+    tooltipVolume.classList.add('tooltip-volume');
+    document.body.appendChild(tooltipVolume);
 
     // Estado de Arrasto
     let isDraggingVolume = false;
@@ -1066,6 +1121,8 @@ const VolumeModule = (function() {
                 const volume = percent / 100;
                 await player.setVolume(volume);
                 console.log(`Volume set to ${percent}%`);
+                // Atualiza o estado no localStorage
+                localStorage.setItem('volume_percent', percent);
             } catch (error) {
                 console.error('Erro ao atualizar volume:', error);
             }
@@ -1102,11 +1159,25 @@ const VolumeModule = (function() {
         }
     }
 
+    // Função para Exibir Tooltip
+    function showTooltip(x, y, text) {
+        tooltipVolume.style.left = `${x}px`;
+        tooltipVolume.style.top = `${y}px`;
+        tooltipVolume.textContent = text;
+        tooltipVolume.style.display = 'block';
+    }
+
+    function hideTooltip() {
+        tooltipVolume.style.display = 'none';
+    }
+
     // Manipuladores de Eventos
     function handleMouseDown(e) {
         e.preventDefault();
         isDraggingVolume = true;
     }
+
+    const throttledVolumeUpdate = throttle(performVolumeUpdate, 100); // Limita a 10 chamadas por segundo
 
     function handleMouseMove(e) {
         if (!isDraggingVolume) return;
@@ -1116,13 +1187,23 @@ const VolumeModule = (function() {
         offsetX = Math.max(0, Math.min(offsetX, rect.width));
         const percent = (offsetX / rect.width) * 100;
 
+        // Atualiza a UI imediatamente
         updateUI(handleVolume, volumeBar, percent);
+
+        // Envia a atualização de volume de forma throttled
         throttledVolumeUpdate(percent);
+
+        // Atualiza o Tooltip
+        const tooltipText = `${Math.round(percent)}%`;
+        const tooltipX = e.clientX;
+        const tooltipY = rect.top - 30; // Posição acima da barra
+        showTooltip(tooltipX, tooltipY, tooltipText);
     }
 
     function handleMouseUp() {
         if (isDraggingVolume) {
             isDraggingVolume = false;
+            hideTooltip();
         }
     }
 
@@ -1149,12 +1230,17 @@ const VolumeModule = (function() {
             if (currentVolume > 0) {
                 await player.setVolume(0); // Muta o som
                 updateUI(handleVolume, volumeBar, 0);
+                // Atualiza o estado no localStorage
+                localStorage.setItem('volume_percent', 0);
                 // Atualiza o ícone para volume mute
                 btnVolume.querySelector('i').classList.remove('fa-volume-up');
                 btnVolume.querySelector('i').classList.add('fa-volume-mute');
             } else {
-                await player.setVolume(50 / 100); // Define volume para 50%
-                updateUI(handleVolume, volumeBar, 50);
+                const defaultVolume = 50; // Define volume para 50%
+                await player.setVolume(defaultVolume / 100);
+                updateUI(handleVolume, volumeBar, defaultVolume);
+                // Atualiza o estado no localStorage
+                localStorage.setItem('volume_percent', defaultVolume);
                 // Atualiza o ícone para volume up
                 btnVolume.querySelector('i').classList.remove('fa-volume-mute');
                 btnVolume.querySelector('i').classList.add('fa-volume-up');
@@ -1166,8 +1252,12 @@ const VolumeModule = (function() {
 
     // Inicialização do Módulo
     function init() {
-        const throttledVolumeMove = throttle(performVolumeUpdate, 100); // 100ms de limite
-        const debouncedToggleMute = debounce(toggleMute, 300); // 300ms de delay
+        // Carrega o estado anterior do volume
+        const savedVolumePercent = parseFloat(localStorage.getItem('volume_percent'));
+        if (!isNaN(savedVolumePercent)) {
+            updateUI(handleVolume, volumeBar, savedVolumePercent);
+            performVolumeUpdate(savedVolumePercent);
+        }
 
         // Eventos de arrasto de volume
         handleVolume.addEventListener('mousedown', handleMouseDown);
@@ -1179,13 +1269,10 @@ const VolumeModule = (function() {
         if (btnVolume) {
             btnVolume.addEventListener('click', debouncedToggleMute);
         }
-
-        // Atualiza o volume a cada mudança
-        window.throttledVolumeUpdate = throttledVolumeMove; // Expondo para uso interno
     }
 
-    // Throttled Volume Update
-    const throttledVolumeUpdate = throttle(performVolumeUpdate, 100); // Limita a 10 chamadas por segundo
+    // Debounced Toggle Mute
+    const debouncedToggleMute = debounce(toggleMute, 300); // 300ms de delay
 
     return {
         init: init

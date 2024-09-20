@@ -504,3 +504,51 @@ body {
     transform: translate(-50%, -50%) scale(1.2);
     transition: background-color 0.3s, transform 0.3s; /* Mantém as transições existentes */
 }
+
+/* Tooltip para Seek */
+.tooltip-seek,
+.tooltip-volume {
+    position: absolute;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    pointer-events: none;
+    display: none; /* Inicialmente oculto */
+    transform: translate(-50%, -100%); /* Posiciona acima do ponto de referência */
+    z-index: 9999;
+}
+
+/* Pequena seta para o tooltip */
+.tooltip-seek::after,
+.tooltip-volume::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; /* Posiciona a seta na parte inferior do tooltip */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}
+
+/* Adicionando transições suaves para os tooltips */
+.tooltip-seek,
+.tooltip-volume {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tooltip-seek.show,
+.tooltip-volume.show {
+    display: block;
+    opacity: 1;
+    transform: translate(-50%, -110%);
+}
+
+.tooltip-seek.hide,
+.tooltip-volume.hide {
+    opacity: 0;
+    transform: translate(-50%, -100%);
+}
