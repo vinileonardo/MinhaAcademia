@@ -306,7 +306,8 @@ async function play() {
     if (!device_id) {
         alert('Player não está pronto.');
         playButton.classList.remove('loading');
-        playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+        //DEIXA O BOTAO DE PLAY
+        playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
         return;
     }
 
@@ -320,14 +321,17 @@ async function play() {
             },
         });
 
-        if (response.status === 204) {
-            console.log('Reprodução iniciada.');
-            // Atualiza o ícone para pause
-            playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
-        } else {
+        //SE DER ERRO DEIXA O BOTAO DE PLAY
+        if (response.status > 209) {
             const error = await response.json();
             console.error('Erro ao iniciar reprodução:', error);
             playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+            
+        } else {
+            //SE DER CERTO, DEIXA O BOTAO DE PAUSE
+            console.log('Reprodução iniciada.');
+            // Atualiza o ícone para pause
+            playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
         }
     } catch (error) {
         console.error('Erro ao iniciar reprodução:', error);
@@ -360,14 +364,16 @@ async function pause() {
             },
         });
 
-        if (response.status === 204) {
-            console.log('Reprodução pausada.');
-            // Atualiza o ícone para play
-            pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
-        } else {
+        //SE DER ERRO PARA PAUSAR, DEIXA O BOTAO DE PAUSE
+        if (response.status > 299) {
             const error = await response.json();
             console.error('Erro ao pausar reprodução:', error);
             pauseButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+        } else {
+            //SE PAUSAR COM SUCESSO, DEIXA O BOTAO DE PLAY
+            console.log('Reprodução pausada.');
+            // Atualiza o ícone para play
+            pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
         }
     } catch (error) {
         console.error('Erro ao pausar reprodução:', error);

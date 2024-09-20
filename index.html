@@ -209,13 +209,7 @@
                   <a href="#" class="text-white" id="btn-shuffle" aria-label="Shuffle">
                     <i class="fas fa-random"></i>
                   </a>
-                </li>
-                <!-- Botão Repeat -->
-                <li class="list-inline-item mx-2">
-                  <a href="#" class="text-white" id="btn-repeat" aria-label="Repeat">
-                    <i class="fas fa-redo-alt"></i>
-                  </a>
-                </li>
+                </li>                
                 <!-- Botão Previous -->
                 <li class="list-inline-item mx-2">
                   <a href="#" class="text-white" id="btn-prev"><i class="fas fa-step-backward"></i></a>
@@ -230,27 +224,27 @@
                 <li class="list-inline-item mx-2">
                   <a href="#" class="text-white" id="btn-next"><i class="fas fa-step-forward"></i></a>
                 </li>
-                <!-- Slider de Seek -->
-                <li class="list-inline-item mx-2 w-100">
-                  <div class="progress progress-main flex-grow-1 position-relative" id="progress-main" style="height: 8px; cursor: pointer;">
-                    <div id="progress-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                    <div class="progress-handle" id="handle-main" style="left:25%;"></div>
-                  </div>
-                  <div class="d-flex justify-content-between mt-1">
-                    <span class="song-progress" id="current-time">0:00</span>
-                    <span class="song-duration" id="total-duration">0:00</span>
-                  </div>
+                <!-- Botão Repeat -->
+                <li class="list-inline-item mx-2">
+                  <a href="#" class="text-white" id="btn-repeat" aria-label="Repeat">
+                    <i class="fas fa-redo-alt"></i>
+                  </a>
                 </li>
+                
               </ul>
             </div>
             <div class="d-flex align-items-center w-100">
-              <span class="song-progress me-3" id="current-time-display">0:00</span>
-              <div class="progress progress-main flex-grow-1 position-relative" id="progress-main" style="height: 8px; cursor: pointer;">
-                <div id="progress-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                <div class="progress-handle" id="handle-main" style="left:25%;"></div>
-              </div>
-              <span class="song-duration ms-3" id="total-duration-display">0:00</span>
-            </div>
+              <!-- Slider de Seek -->
+              <li class="list-inline-item mx-2 w-100">
+                <div class="progress progress-main flex-grow-1 position-relative" id="progress-main" style="height: 8px; cursor: pointer;">
+                  <div id="progress-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="progress-handle" id="handle-main" style="left:25%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1">
+                  <span class="song-progress" id="current-time">0:00</span>
+                  <span class="song-duration" id="total-duration">0:00</span>
+                </div>
+              </li>
           </div>
         </div>
 
