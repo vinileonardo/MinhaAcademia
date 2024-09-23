@@ -1371,8 +1371,8 @@ const SeekModule = (function() {
     }
 
     function hideTooltip() {
-      tooltipSeek.style.display = 'none';
-      console.log('Tooltip escondido'); // Para verificar se a função é chamada
+        tooltipSeek.style.display = 'none';
+        console.log('Tooltip escondido'); // Para verificar se a função é chamada
     }
 
 
@@ -1382,6 +1382,8 @@ const SeekModule = (function() {
         isDraggingSeek = true;
     }
 
+        // ... código existente ...
+
     function handleMouseMove(e) {
         if (!isDraggingSeek) return;
 
@@ -1390,7 +1392,7 @@ const SeekModule = (function() {
         offsetX = Math.max(0, Math.min(offsetX, rect.width));
         const percent = (offsetX / rect.width) * 100;
 
-        updateUI(handleMain, progressBarMain, percent);
+        updateUI(handleMain, progressBarMain, percent); // Atualiza a UI imediatamente
         finalPercentSeek = percent;
 
         // Atualiza o Tooltip
