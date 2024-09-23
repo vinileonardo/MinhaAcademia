@@ -792,7 +792,7 @@ function getCurrentTrackId() {
 */
 function msToTime(duration) {
     let seconds = Math.floor((duration / 1000) % 60),
-        minutes = Math.floor((duration / (1000 * 60)) % 60);
+        minutes = Math.floor((duration / (1000 * 60)) % 60); // Corrigido o parêntese
 
     minutes = (minutes < 10) ? "0" + minutes : minutes;
     seconds = (seconds < 10) ? "0" + seconds : seconds;
@@ -909,7 +909,6 @@ function mostrarConfirmacao() {
 
 /*   SEEK     */
 
-
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializa os módulos
     SeekModule.init();
@@ -971,7 +970,9 @@ const SeekModule = (function() {
 
     // Função para Exibir Tooltip
     function showTooltip(x, y, text) {
-        tooltipSeek.style.left = `${x}px`;
+        const tooltipWidth = tooltipSeek.offsetWidth;
+        const tooltipX = x - (tooltipWidth / 2);
+        tooltipSeek.style.left = `${tooltipX}px`;
         tooltipSeek.style.top = `${y}px`;
         tooltipSeek.textContent = text;
         tooltipSeek.style.display = 'block';
