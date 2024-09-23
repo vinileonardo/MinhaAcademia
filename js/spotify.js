@@ -390,6 +390,398 @@ async function pause() {
 async function transferPlaybackHere(device_id) {
   const token = localStorage.getItem('access_token');
   try {
+// spotify.js
+
+// Variáveis de configuração
+const clientId = 'bf525d89f2bb4471bba89160674e9975'; // Substitua pelo seu Client ID
+const redirectUri = 'https://vinileonardo.github.io/MinhaAcademia/'; // Atualizado com barra no final
+const scopes = [
+  'streaming',
+  'user-read-email',
+  'user-read-private',
+  'user-modify-playback-state',
+  'user-read-playback-state',
+  'user-read-recently-played',
+  'playlist-read-private',
+  'playlist-read-collaborative',
+];
+
+/* 
+  Funções de PKCE para autenticação segura com o Spotify.
+  Estas funções geram o code verifier e o code challenge necessários para o fluxo de autenticação.
+*/
+function generateCodeVerifier(length = 128) {
+  const array = new Uint8Array(Math.ceil(length * 3 / 4));
+  window.crypto.getRandomValues(array);
+  let codeVerifier = btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  if (codeVerifier.length > length) {
+    codeVerifier = codeVerifier.substring(0, length);
+  }
+
+  return codeVerifier;
+}
+
+async function generateCodeChallenge(codeVerifier) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const digest = await window.crypto.subtle.digest('SHA-256', data);
+  let base64String = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  return base64String;
+}
+
+function generateRandomString(length) {
+  const array = new Uint8Array(length);
+  window.crypto.getRandomValues(array);
+  let randomString = '';
+  for (let i = 0; i < array.length; i++) {
+    randomString += String.fromCharCode(array[i]);
+  }
+  randomString = btoa(randomString)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  return randomString;
+}
+
+/* 
+  Função para iniciar a autenticação com o Spotify.
+  Gera os parâmetros necessários e redireciona o usuário para a página de login do Spotify.
+*/
+async function initiateAuth() {
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
+  const state = generateRandomString(16);
+  const scope = scopes.join(' ');
+
+  // Armazena o code verifier e o state no sessionStorage para uso posterior
+  sessionStorage.setItem('code_verifier', codeVerifier);
+  sessionStorage.setItem('state', state);
+
+  const args = new URLSearchParams({
+    response_type: 'code',
+    client_id: clientId,
+    scope: scope,
+    redirect_uri: redirectUri,
+    state: state,
+    code_challenge_method: 'S256',
+    code_challenge: codeChallenge,
+  });
+
+  // Redireciona o usuário para a página de autenticação do Spotify
+  window.location = `https://accounts.spotify.com/authorize?${args.toString()}`;
+}
+
+/* 
+  Função para extrair parâmetros da URL.
+  Utilizada para capturar o código de autenticação retornado pelo Spotify.
+*/
+function getUrlParams() {
+  const params = {};
+  window.location.search.replace(/^\?/, '').split('&').forEach(param => {
+    const [key, value] = param.split('=');
+    params[key] = decodeURIComponent(value);
+  });
+  return params;
+}
+
+/* 
+  Função para trocar o código de autenticação pelo token de acesso.
+  Envia uma requisição POST para a API do Spotify para obter o token.
+*/
+async function exchangeCodeForToken(code) {
+  const codeVerifier = sessionStorage.getItem('code_verifier');
+  const storedState = sessionStorage.getItem('state');
+
+  const body = new URLSearchParams({
+    grant_type: 'authorization_code',
+    code: code,
+    redirect_uri: redirectUri,
+    client_id: clientId,
+    code_verifier: codeVerifier,
+  });
+
+  try {
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Erro na resposta da API:', errorData);
+      return;
+    }
+
+    const data = await response.json();
+
+    if (data.access_token) {
+      // Armazena os tokens no localStorage
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      const expiresAt = new Date().getTime() + data.expires_in * 1000;
+      localStorage.setItem('expires_at', expiresAt);
+      
+      // Remove os parâmetros da URL para limpar o redirect
+      window.history.replaceState({}, document.title, redirectUri);
+      
+      // Esconde o modal de login se estiver visível
+      const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+      if (loginModal) {
+        loginModal.hide();
+      }
+      
+      // Inicia a sincronização do player após autenticação
+        startPlayerSync();
+
+        // Opcional: Mostrar o player imediatamente após a autenticação
+        showPlayer();
+    } else {
+      console.error('Erro ao obter o token:', data);
+    }
+  } catch (error) {
+    console.error('Erro na requisição do token:', error);
+  }
+}
+
+/* 
+  Função para verificar se o usuário está autenticado.
+  Verifica a presença e validade do token de acesso.
+*/
+function isAuthenticated() {
+  const token = localStorage.getItem('access_token');
+  const expiresAt = localStorage.getItem('expires_at');
+  if (!token) return false;
+  if (new Date().getTime() > expiresAt) return false;
+  return true;
+}
+
+/* 
+  Função para lidar com o redirecionamento após autenticação.
+  Se um código de autenticação estiver presente na URL, tenta trocar pelo token.
+*/
+async function handleRedirect() {
+  const params = getUrlParams();
+  if (params.code) {
+    const storedState = sessionStorage.getItem('state');
+    if (params.state !== storedState) {
+      console.error('State mismatch. Esperado:', storedState, 'Recebido:', params.state);
+      return;
+    }
+    await exchangeCodeForToken(params.code);
+  }
+}
+
+/* 
+  Função para obter a música atualmente tocando do usuário.
+  Retorna os dados da música ou null se nenhuma estiver tocando.
+*/
+async function getCurrentlyPlaying() {
+  const token = localStorage.getItem('access_token');
+  try {
+    const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (response.status === 204 || response.status > 400) {
+      return null;
+    }
+    const data = await response.json();
+    if (data && data.item) {
+      return data.item;
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao obter a música atualmente tocando:', error);
+    return null;
+  }
+}
+
+/* 
+  Função para obter a última música reproduzida pelo usuário.
+  Utilizada quando nenhuma música está atualmente tocando.
+*/
+async function getLastPlayed() {
+  const token = localStorage.getItem('access_token');
+  try {
+    const response = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (response.status > 400) {
+      return null;
+    }
+    const data = await response.json();
+    if (data && data.items && data.items.length > 0) {
+      return data.items[0].track;
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao obter a última música tocada:', error);
+    return null;
+  }
+}
+
+/* 
+  Função para atualizar a interface do player com as informações da faixa.
+  Atualiza o título da faixa, nome do artista e a arte do álbum.
+*/
+function updatePlayerUI(track) {
+  const currentTrackElement = document.getElementById('current-track');
+  const artistNameElement = document.getElementById('artist-name');
+  const albumArtElement = document.getElementById('album-art');
+
+  if (track) {
+    currentTrackElement.textContent = `${track.name}`;
+    currentTrackElement.setAttribute('data-id', track.id); // Armazena o ID da faixa
+    artistNameElement.textContent = track.artists.map(artist => artist.name).join(', ');
+    albumArtElement.src = track.album.images[2]?.url || track.album.images[0]?.url || '';
+  } else {
+    currentTrackElement.textContent = 'Nenhuma música reproduzindo.';
+    currentTrackElement.removeAttribute('data-id'); // Remove o ID quando não há faixa
+    artistNameElement.textContent = '';
+    albumArtElement.src = '';
+  }
+}
+
+/* 
+  Função para sincronizar o player com a música atual ou a última música tocada.
+  Atualiza a interface do player e as informações da música.
+*/
+async function synchronizePlayer() {
+  const currentTrack = await getCurrentlyPlaying();
+  if (currentTrack) {
+    updatePlayerUI(currentTrack);
+  } else {
+    const lastTrack = await getLastPlayed();
+    if (lastTrack) {
+      updatePlayerUI(lastTrack);
+    } else {
+      updatePlayerUI(null);
+    }
+  }
+}
+
+/* 
+  Função para iniciar a sincronização contínua do player.
+  Atualiza a cada 30 segundos para refletir quaisquer mudanças.
+*/
+function startPlayerSync() {
+  synchronizePlayer();
+  setInterval(synchronizePlayer, 30000); // Sincroniza a cada 30 segundos
+}
+
+/* 
+  Funções de controle de reprodução
+  Estas funções interagem com a API do Spotify para controlar a reprodução da música.
+*/
+
+/* Iniciar reprodução */
+async function play() {
+    const playButton = document.getElementById('btn-play-pause');
+    playButton.classList.add('loading'); // Adicionar classe de loading
+    playButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Mostrar spinner
+
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+    if (!device_id) {
+        alert('Player não está pronto.');
+        playButton.classList.remove('loading');
+        //DEIXA O BOTAO DE PLAY
+        playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
+            method: 'PUT',
+            body: JSON.stringify({}),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+        });
+
+        //SE DER ERRO DEIXA O BOTAO DE PLAY
+        if (response.status > 209) {
+            const error = await response.json();
+            console.error('Erro ao iniciar reprodução:', error);
+            playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+            
+        } else {
+            //SE DER CERTO, DEIXA O BOTAO DE PAUSE
+            console.log('Reprodução iniciada.');
+            // Atualiza o ícone para pause
+            playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+        }
+    } catch (error) {
+        console.error('Erro ao iniciar reprodução:', error);
+        playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+    } finally {
+        playButton.classList.remove('loading'); // Remover classe de loading
+    }
+}
+
+/* Pausar reprodução */
+async function pause() {
+    const pauseButton = document.getElementById('btn-play-pause');
+    pauseButton.classList.add('loading'); // Adicionar classe de loading
+    pauseButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Mostrar spinner
+
+    const token = localStorage.getItem('access_token');
+    const device_id = localStorage.getItem('device_id');
+    if (!device_id) {
+        alert('Player não está pronto.');
+        pauseButton.classList.remove('loading');
+        pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://api.spotify.com/v1/me/player/pause?device_id=${device_id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+        });
+
+        //SE DER ERRO PARA PAUSAR, DEIXA O BOTAO DE PAUSE
+        if (response.status > 299) {
+            const error = await response.json();
+            console.error('Erro ao pausar reprodução:', error);
+            pauseButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+        } else {
+            //SE PAUSAR COM SUCESSO, DEIXA O BOTAO DE PLAY
+            console.log('Reprodução pausada.');
+            // Atualiza o ícone para play
+            pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+        }
+    } catch (error) {
+        console.error('Erro ao pausar reprodução:', error);
+        pauseButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+    } finally {
+        pauseButton.classList.remove('loading'); // Remover classe de loading
+    }
+}
+
+/* 
+  Função para transferir a reprodução para o SDK Player.
+  Assegura que a reprodução esteja sendo gerenciada pelo player integrado.
+*/
+async function transferPlaybackHere(device_id) {
+  const token = localStorage.getItem('access_token');
+  try {
     const response = await fetch('https://api.spotify.com/v1/me/player', {
       method: 'PUT',
       body: JSON.stringify({
@@ -979,8 +1371,10 @@ const SeekModule = (function() {
     }
 
     function hideTooltip() {
-        tooltipSeek.style.display = 'none';
+      tooltipSeek.style.display = 'none';
+      console.log('Tooltip escondido'); // Para verificar se a função é chamada
     }
+
 
     // Manipuladores de Eventos
     function handleMouseDown(e) {
