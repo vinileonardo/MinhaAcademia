@@ -183,86 +183,70 @@
   </div>
 
   <!-- Footer com o player -->
-  <footer id="spotify-player" class="bg-dark text-white fixed-bottom spotify-player" style="display: none;">
-    <div class="container-fluid">
-      <div class="row align-items-center py-2">
-        <!-- Album em reprodução -->
-        <div class="col-12 col-md-3 d-flex align-items-center mb-3 mb-md-0">
-          <img src="" alt="Album Art" id="album-art" width="60" height="60">
-          <div class="track-info album-info d-flex flex-column">
-            <div id="current-track" class="text-white text-decoration-none" data-id="">Nenhuma música reproduzindo.</div>
-            <div id="artist-name" class="text-white text-decoration-none"></div>
-          </div>
-          <div class="album-icons ms-3 d-none d-md-flex flex-column">
-            <!-- Botão de Favoritar (Adicionado ID para funcionalidade) -->
-            <a href="#" class="text-white mb-2" id="btn-favorite"><i class="far fa-heart"></i></a>
-          </div>
+<footer id="spotify-player" class="bg-dark text-white fixed-bottom spotify-player" style="display: none;">
+  <div class="container-fluid">
+    <div class="row align-items-center py-2">
+      <!-- Album em reprodução -->
+      <div class="col-12 col-md-3 d-flex align-items-center mb-3 mb-md-0">
+        <img src="" alt="Album Art" id="album-art" width="60" height="60">
+        <div class="track-info album-info ms-3">
+          <div id="current-track" class="text-white text-decoration-none" data-id="">Nenhuma música reproduzindo.</div>
+          <div id="artist-name" class="text-white text-decoration-none"></div>
+        </div>
+        <div class="album-icons ms-3 d-none d-md-flex flex-column">
+          <!-- Botão de Favoritar -->
+          <a href="#" class="text-white mb-2" id="btn-favorite"><i class="far fa-heart"></i></a>
+        </div>
+      </div>
+
+      <!-- Controle do player -->
+      <div class="col-12 col-md-6 text-center">
+        <div class="player-controls d-flex justify-content-center align-items-center">
+          <!-- Botões de controle -->
+          <button class="btn btn-link text-white mx-2" id="btn-shuffle" aria-label="Shuffle">
+            <i class="fas fa-random"></i>
+          </button>
+          <button class="btn btn-link text-white mx-2" id="btn-prev" aria-label="Previous">
+            <i class="fas fa-step-backward"></i>
+          </button>
+          <button class="btn btn-link text-white mx-2" id="btn-play-pause" aria-label="Play/Pause">
+            <i class="far fa-play-circle fa-2x" id="icon-play-pause"></i>
+          </button>
+          <button class="btn btn-link text-white mx-2" id="btn-next" aria-label="Next">
+            <i class="fas fa-step-forward"></i>
+          </button>
+          <button class="btn btn-link text-white mx-2" id="btn-repeat" aria-label="Repeat">
+            <i class="fas fa-redo-alt"></i>
+          </button>
         </div>
 
-        <!-- Controle do player -->
-        <div class="col-12 col-md-6">
-          <div class="d-flex flex-column align-items-center">
-            <div class="player-controller mb-2">
-              <ul class="list-inline mb-0">
-                <!-- Botão Shuffle -->
-                <li class="list-inline-item mx-2">
-                  <a href="#" class="text-white" id="btn-shuffle" aria-label="Shuffle">
-                    <i class="fas fa-random"></i>
-                  </a>
-                </li>                
-                <!-- Botão Previous -->
-                <li class="list-inline-item mx-2">
-                  <a href="#" class="text-white" id="btn-prev"><i class="fas fa-step-backward"></i></a>
-                </li>
-                <!-- Botão Play/Pause -->
-                <li class="list-inline-item mx-2">
-                  <a href="#" class="text-white" id="btn-play-pause">
-                    <i class="far fa-play-circle fa-2x" id="icon-play-pause"></i>
-                  </a>
-                </li>
-                <!-- Botão Next -->
-                <li class="list-inline-item mx-2">
-                  <a href="#" class="text-white" id="btn-next"><i class="fas fa-step-forward"></i></a>
-                </li>
-                <!-- Botão Repeat -->
-                <li class="list-inline-item mx-2">
-                  <a href="#" class="text-white" id="btn-repeat" aria-label="Repeat">
-                    <i class="fas fa-redo-alt"></i>
-                  </a>
-                </li>                
-              </ul>
-            </div>
-            <div class="d-flex align-items-center w-100">
-              <!-- Slider de Seek -->
-              <li class="list-inline-item mx-2 w-100">
-                <div class="progress progress-main flex-grow-1 position-relative" id="progress-main" style="height: 8px; cursor: pointer;">
-                  <div id="progress-bar" class="progress-bar" role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                  <div class="progress-handle" id="handle-main" style="left:0%;"></div>
-                </div>
-                <div class="d-flex justify-content-between mt-1">
-                  <span class="song-progress" id="current-time">0:00</span>
-                  <span class="song-duration" id="total-duration">0:00</span>
-                </div>
-              </li>
-            </div>
+        <!-- Barra de Progresso Simplificada -->
+        <div class="progress-bar-container position-relative mt-2">
+          <div class="progress bg-secondary" style="height: 5px;">
+            <div class="progress-bar bg-primary" id="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="position-absolute w-100 d-flex justify-content-between" style="top: -25px; font-size: 12px;">
+            <span id="current-time">0:00</span>
+            <span id="total-duration">0:00</span>
           </div>
         </div>
+      </div>
 
-        <!-- Controle da direita -->
-        <div class="col-12 col-md-3 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
-          <div class="d-flex align-items-center">
-            <!-- Botão de Volume (Adicionado ID para funcionalidade) -->
-            <a href="#" class="text-white me-3" id="btn-volume"><i class="fas fa-volume-up"></i></a>
-            <div class="progress progress-volume position-relative" id="progress-volume" style="width: 100px; height: 8px;">
-              <div id="volume-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-              <div class="progress-handle" id="handle-volume" style="left:25%;"></div>
-            </div>
+      <!-- Controle da direita -->
+      <div class="col-12 col-md-3 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
+        <div class="d-flex align-items-center">
+          <!-- Botão de Volume -->
+          <a href="#" class="text-white me-3" id="btn-volume"><i class="fas fa-volume-up"></i></a>
+          <div class="progress progress-volume position-relative" id="progress-volume" style="width: 100px; height: 5px;">
+            <div id="volume-bar" class="progress-bar" role="progressbar" style="width:25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            <div class="progress-handle" id="handle-volume" style="left:25%;"></div>
           </div>
         </div>
-
       </div>
     </div>
-  </footer>
+  </div>
+</footer>
+
 
   <!-- Modal de Login do Spotify -->
   <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">

@@ -17,10 +17,11 @@ window.onSpotifyWebPlaybackSDKReady = () => {
   
   if (isAuthenticated()) {
       initializeSpotifyPlayer();
-  } else {
+  }
+  /* else {
       const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
       loginModal.show();
-  }
+  }*/
 };
 
 async function initializeSpotifyPlayer() {
@@ -58,11 +59,13 @@ async function initializeSpotifyPlayer() {
   });
 
   player.addListener('player_state_changed', state => {
-      if (!state) {
-          return;
-      }
-      const currentTrack = state.track_window.current_track;
-      updatePlayerUI(currentTrack);
+    if (!state) {
+      return;
+    }
+    const currentTrack = state.track_window.current_track;
+    const progress_ms = state.position;
+    const duration_ms = state.duration;
+    updatePlayerUI(currentTrack, progress_ms, duration_ms);
   });
 
   // Armazene o player para uso posterior
@@ -304,21 +307,38 @@ async function getLastPlayed() {
   Função para atualizar a interface do player com as informações da faixa.
   Atualiza o título da faixa, nome do artista e a arte do álbum.
 */
-function updatePlayerUI(track) {
+// Atualize a função updatePlayerUI para aceitar progress_ms e duration_ms
+function updatePlayerUI(track, progress_ms, duration_ms) {
   const currentTrackElement = document.getElementById('current-track');
   const artistNameElement = document.getElementById('artist-name');
   const albumArtElement = document.getElementById('album-art');
+  const progressBar = document.getElementById('progress-bar');
+  const currentTimeEl = document.getElementById('current-time');
+  const totalDurationEl = document.getElementById('total-duration');
 
   if (track) {
     currentTrackElement.textContent = `${track.name}`;
     currentTrackElement.setAttribute('data-id', track.id); // Armazena o ID da faixa
     artistNameElement.textContent = track.artists.map(artist => artist.name).join(', ');
     albumArtElement.src = track.album.images[2]?.url || track.album.images[0]?.url || '';
+
+    // Atualizar a barra de progresso
+    if (progress_ms !== undefined && duration_ms !== undefined) {
+      const percent = (progress_ms / duration_ms) * 100;
+      progressBar.style.width = `${percent}%`;
+
+      // Atualizar os tempos
+      currentTimeEl.textContent = msToTime(progress_ms);
+      totalDurationEl.textContent = msToTime(duration_ms);
+    }
   } else {
     currentTrackElement.textContent = 'Nenhuma música reproduzindo.';
     currentTrackElement.removeAttribute('data-id'); // Remove o ID quando não há faixa
     artistNameElement.textContent = '';
     albumArtElement.src = '';
+    progressBar.style.width = '0%';
+    currentTimeEl.textContent = '0:00';
+    totalDurationEl.textContent = '0:00';
   }
 }
 
@@ -327,16 +347,30 @@ function updatePlayerUI(track) {
   Atualiza a interface do player e as informações da música.
 */
 async function synchronizePlayer() {
-  const currentTrack = await getCurrentlyPlaying();
-  if (currentTrack) {
-    updatePlayerUI(currentTrack);
-  } else {
-    const lastTrack = await getLastPlayed();
-    if (lastTrack) {
-      updatePlayerUI(lastTrack);
-    } else {
+  const token = localStorage.getItem('access_token');
+  const device_id = localStorage.getItem('device_id');
+  if (!device_id) return;
+
+  try {
+    const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response.status === 200) {
+      const data = await response.json();
+      if (data && data.item && data.progress_ms !== undefined && data.item.duration_ms !== undefined) {
+        const currentTrack = data.item;
+        const progress_ms = data.progress_ms;
+        const duration_ms = data.item.duration_ms;
+        updatePlayerUI(currentTrack, progress_ms, duration_ms);
+      }
+    } else if (response.status === 204) {
       updatePlayerUI(null);
     }
+  } catch (error) {
+    console.error('Erro ao sincronizar o player:', error);
   }
 }
 
@@ -907,7 +941,6 @@ function mostrarConfirmacao() {
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializa os módulos
-    SeekModule.init();
     VolumeModule.init();
 });
 
