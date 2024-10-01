@@ -835,6 +835,8 @@ document.getElementById('btn-favorite').addEventListener('click', async (e) => {
     await toggleFavorite();
 });
 
+
+const player = window.spotifyPlayer;
 // Atualizar UI ao sincronizar
 player.addListener('player_state_changed', async state => {
     if (!state) return;
