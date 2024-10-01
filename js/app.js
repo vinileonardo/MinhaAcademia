@@ -296,62 +296,22 @@ function obterTituloVideo(videoID, callback) {
 function exibirExercicios(dia) {
   const exercicios = JSON.parse(localStorage.getItem(dia)) || [];
   const lista = document.getElementById(`exercicios-${dia}`);
-  lista.innerHTML = '';
+  lista.innerHTML = ''; // Limpar o conteúdo antes de adicionar novos elementos
 
   exercicios.forEach((exercicio, indice) => {
-    let videoID = '';
-
-    if (exercicio.modo === 'link') {
-      videoID = extrairVideoID(exercicio.link);
-    } else if (exercicio.modo === 'pesquisa') {
-      videoID = exercicio.videoId;
-    }
-
-    const col = document.createElement('div');
-    col.className = 'col-md-6 mb-4';
-
-    const card = document.createElement('div');
-    card.className = 'card';
-
-    const cardBody = document.createElement('div');
-    cardBody.className = 'card-body';
-
-    const titulo = document.createElement('h5');
-    titulo.className = 'card-title';
-    titulo.textContent = exercicio.nome;
-
-    const video = document.createElement('div');
-    video.className = 'embed-responsive embed-responsive-16by9';
-    if (videoID) {
-      video.innerHTML = `<iframe class="embed-responsive-item" src="https://www.youtube.com/embed/${videoID}" allowfullscreen></iframe>`;
-    } else {
-      video.innerHTML = '<p>Vídeo não disponível</p>';
-    }
-
-    const btnGroup = document.createElement('div');
-    btnGroup.className = 'btn-group mt-2';
-    btnGroup.role = 'group';
-
-    const btnEditar = document.createElement('button');
-    btnEditar.className = 'btn btn-sm btn-info';
-    btnEditar.textContent = 'Editar';
-    btnEditar.onclick = () => abrirModal(dia, indice);
-
-    const btnExcluir = document.createElement('button');
-    btnExcluir.className = 'btn btn-sm btn-danger';
-    btnExcluir.textContent = 'Excluir';
-    btnExcluir.onclick = () => excluirExercicio(dia, indice);
-
-    btnGroup.appendChild(btnEditar);
-    btnGroup.appendChild(btnExcluir);
-
-    cardBody.appendChild(titulo);
-    cardBody.appendChild(video);
-    cardBody.appendChild(btnGroup);
-
-    card.appendChild(cardBody);
-    col.appendChild(card);
-    lista.appendChild(col);
+    // Adicionar código para exibir cada exercício
+    const exercicioDiv = document.createElement('div');
+    exercicioDiv.className = 'col-12 mb-2';
+    exercicioDiv.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">${exercicio.nome}</h5>
+          <button class="btn btn-warning" onclick="abrirModal('${dia}', ${indice})">Editar</button>
+          <button class="btn btn-danger" onclick="excluirExercicio('${dia}', ${indice})">Excluir</button>
+        </div>
+      </div>
+    `;
+    lista.appendChild(exercicioDiv);
   });
 }
 
@@ -382,19 +342,39 @@ function ativarAba(dia) {
   // Remover a classe 'active' de todas as abas
   document.querySelectorAll('.nav-link').forEach(tab => tab.classList.remove('active'));
   // Adicionar a classe 'active' à aba selecionada
-  document.querySelector(`[data-toggle="tab"][onclick="ativarAba('${dia}')"]`).classList.add('active');
+  document.querySelector(`[data-bs-toggle="tab"][onclick="ativarAba('${dia}')"]`).classList.add('active');
 
   // Exibir o conteúdo da aba selecionada
   document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
   document.getElementById(`nav-${dia}`).classList.add('show', 'active');
+
+  // Limpar o conteúdo da aba antes de exibir os exercícios
+  const lista = document.getElementById(`exercicios-${dia}`);
+  lista.innerHTML = '';
 
   exibirExercicios(dia);
 }
 
 // Ativa a primeira aba ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
-  ativarAba('segunda'); // Você pode alterar para o dia que preferir
+  document.getElementById('nav-segunda').innerHTML = adicionarBotoes('segunda');
+  document.getElementById('nav-terca').innerHTML = adicionarBotoes('terca');
+  document.getElementById('nav-quarta').innerHTML = adicionarBotoes('quarta');
+  document.getElementById('nav-quinta').innerHTML = adicionarBotoes('quinta');
+  document.getElementById('nav-sexta').innerHTML = adicionarBotoes('sexta');
+  document.getElementById('nav-sabado').innerHTML = adicionarBotoes('sabado');
+  document.getElementById('nav-domingo').innerHTML = adicionarBotoes('domingo');
+
+  ativarAba('segunda'); // Ativar a aba de segunda-feira ao carregar a página
 });
+
+function adicionarBotoes(dia) {
+  return `
+    <button class="btn btn-primary mb-2" onclick="abrirModal('${dia}')">Adicionar Exercício</button>
+    <button class="btn btn-danger mb-2" onclick="zerarDia('${dia}')">Zerar Dia</button>
+    <div class="row" id="exercicios-${dia}"></div>
+  `;
+}
 
 // Função para excluir um exercício
 function excluirExercicio(dia, indice) {
