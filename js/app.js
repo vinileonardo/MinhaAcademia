@@ -134,7 +134,6 @@ document.getElementById('form-exercicio').addEventListener('submit', function(ev
 function mostrarConfirmacao() {
   $('#modalExercicio').modal('hide');
 
-  document.getElementById('confirm-titulo').textContent = exercicioTemp.nome;
   document.getElementById('confirm-nome-video').textContent = exercicioTemp.videoTitulo;
 
   const confirmPreviewVideoDiv = document.getElementById('confirm-preview-video');
@@ -150,7 +149,7 @@ function mostrarConfirmacao() {
   if (videoID) {
     confirmPreviewVideoDiv.innerHTML = `
       <div class="embed-responsive embed-responsive-16by9">
-        <iframe src="https://www.youtube-nocookie.com/embed/${videoID}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${videoID}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
       </div>
     `;
   } else {
@@ -165,15 +164,14 @@ document.getElementById('btn-confirmar-salvar').addEventListener('click', functi
   const exercicios = JSON.parse(localStorage.getItem(diaTemp)) || [];
 
   if (indiceTemp === '' || indiceTemp === null) {
-    // Adiciona novo exercício
+    // Adicionar novo exercício
     exercicios.push(exercicioTemp);
   } else {
-    // Edita exercício existente
+    // Editar exercício existente
     exercicios[indiceTemp] = exercicioTemp;
   }
 
   localStorage.setItem(diaTemp, JSON.stringify(exercicios));
-
   exibirExercicios(diaTemp);
   $('#modalConfirmacao').modal('hide');
 });
@@ -336,6 +334,7 @@ function exibirExercicios(dia) {
 function extrairVideoID(url) {
   if (!url) return '';
 
+  // Diferentes formatos de URL do YouTube
   const regexes = [
     /(?:\?v=|&v=|youtu\.be\/|embed\/|\/v\/|\/vi\/|\/watch\?v=|\/watch\?.+&v=)([^&\n?#]+)/,
     /youtube\.com\/shorts\/([^&\n?#]+)/,
@@ -346,7 +345,10 @@ function extrairVideoID(url) {
   for (const regex of regexes) {
     const match = url.match(regex);
     if (match && match[1]) {
-      return match[1];
+      // Capturar o ID do vídeo completo, incluindo parâmetros adicionais
+      const paramsIndex = url.indexOf(match[1]) + match[1].length;
+      const params = url.substring(paramsIndex);
+      return match[1] + params;
     }
   }
 
