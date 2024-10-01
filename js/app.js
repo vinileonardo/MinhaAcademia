@@ -301,6 +301,7 @@ function exibirExercicios(dia) {
   exercicios.forEach((exercicio, indice) => {
     // Extrair o ID do vídeo do YouTube
     const videoID = extrairVideoID(exercicio.link); // Certifique-se de que 'link' é a propriedade correta
+    console.log(`Exibindo exercício: ${exercicio.nome}, Link do vídeo: ${exercicio.link}, ID do vídeo: ${videoID}`);
 
     // Adicionar código para exibir cada exercício
     const exercicioDiv = document.createElement('div');
