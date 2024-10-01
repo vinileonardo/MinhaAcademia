@@ -381,32 +381,10 @@ body {
     overflow: visible; /* Permite que a bolinha escape do contêiner */
 }
 
-.progress-bar {
-    background-color: #fff; /* Cor padrão: branco */
-    transition: width 0.3s, background-color 0.3s;
-    height: 8px; /* Altura ajustada para acomodar a bolinha */
-    border-radius: 5px;
-}
-
 /* Efeito de Hover nas Barras de Progresso */
 .progress-main:hover .progress-bar,
 .progress-volume:hover .progress-bar {
     background-color: #1dd05d; /* Verde */
-}
-
-/* Bolinha na Barra de Progresso */
-.progress-handle {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    height: 15px;
-    width: 15px;
-    border-radius: 50%;
-    background-color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s;
-    box-shadow: 0 0 5px rgba(0,0,0,0.5);
-    z-index: 2; /* Garante que a bolinha fique acima da barra */
 }
 
 /* Efeitos de Hover na Bolinha */
@@ -466,30 +444,6 @@ body {
 }
 
 
-/* Transições suaves para handles e barras de progresso */
-
-/* Transição para os handles de seek e volume */
-.progress-handle {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    height: 15px;
-    width: 15px;
-    border-radius: 50%;
-    background-color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s, left 0.1s ease-out; /* Adicionado 'left' com transição suave */
-    box-shadow: 0 0 5px rgba(0,0,0,0.5);
-    z-index: 2; /* Garante que a bolinha fique acima da barra */
-}
-
-/* Transição para as barras de progresso */
-.progress-bar {
-    background-color: #fff; /* Cor padrão: branco */
-    transition: width 0.1s ease-out, background-color 0.3s; /* Ajustado para transição mais rápida na largura */
-    height: 8px; /* Altura ajustada para acomodar a bolinha */
-    border-radius: 5px;
-}
 
 /* Transições adicionais para feedback visual durante hover */
 .progress-main:hover .progress-bar,
@@ -505,50 +459,46 @@ body {
     transition: background-color 0.3s, transform 0.3s; /* Mantém as transições existentes */
 }
 
-/* Tooltip para Seek */
-.tooltip-seek,
-.tooltip-volume {
+
+/* Barra de Progresso Simplificada */
+.progress-bar-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px; /* Ajuste conforme necessário */
+    margin: 0 auto;
+  }
+
+  .progress-bar {
+    background-color: #0d6efd; /* Cor primária do Bootstrap */
+    height: 100%;
+    transition: width 0.5s ease;
+  }
+
+  /* Tooltip para seek (se necessário) */
+   .tooltip-volume {
     position: absolute;
-    padding: 5px 10px;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.75);
     color: #fff;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    white-space: nowrap;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 12px;
     pointer-events: none;
-    display: none; /* Inicialmente oculto */
-    transform: translate(-50%, -100%); /* Posiciona acima do ponto de referência */
-    z-index: 9999;
-}
-
-/* Pequena seta para o tooltip */
-.tooltip-seek::after,
-.tooltip-volume::after {
-    content: '';
-    position: absolute;
-    bottom: -5px; /* Posiciona a seta na parte inferior do tooltip */
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
-}
-
-/* Adicionando transições suaves para os tooltips */
-.tooltip-seek,
-.tooltip-volume {
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.tooltip-seek.show,
-.tooltip-volume.show {
-    display: block;
-    opacity: 1;
-    transform: translate(-50%, -110%);
-}
-
-.tooltip-seek.hide,
-.tooltip-volume.hide {
-    opacity: 0;
     transform: translate(-50%, -100%);
-}
+    white-space: nowrap;
+    z-index: 1000;
+  }
+
+  /* Ícones ativos de shuffle e repeat */
+.active-shuffle {
+    color: #0d6efd; /* Cor primária para indicar ativo */
+  }
+  
+  .active-repeat {
+    color: #0d6efd; /* Cor primária para indicar ativo */
+  }
+  
+  /* Botão de carregamento */
+  .loading {
+    pointer-events: none;
+    opacity: 0.6;
+  }
