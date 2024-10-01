@@ -23,13 +23,16 @@ function abrirModal(dia, indice = null) {
   diaAtual.value = dia;
   indiceExercicio.value = indice;
 
-  // Iniciar o modo de vídeo como 'link'
-  modoVideoSelect.value = 'link';
+  // Resetar campos
+  nomeExercicioInput.value = '';
   linkYoutubeInput.value = '';
   termoPesquisaInput.value = '';
   resultadosPesquisaDiv.innerHTML = '';
   previewLinkDiv.innerHTML = '';
   videoSelecionadoDiv.innerHTML = '';
+
+  // Resetar modo de vídeo
+  modoVideoSelect.value = 'link';
   document.getElementById('container-link').style.display = 'block';
   document.getElementById('container-pesquisa').style.display = 'none';
 
@@ -39,28 +42,26 @@ function abrirModal(dia, indice = null) {
     const exercicio = exercicios[indice];
     nomeExercicioInput.value = exercicio.nome;
 
-    // Sempre abrir como se o vídeo tivesse sido inserido via link
-    // Preencher o link do YouTube e pré-exibir o vídeo
-
-    let videoLink = '';
-
     if (exercicio.modo === 'link') {
-      videoLink = exercicio.link;
+      modoVideoSelect.value = 'link';
+      linkYoutubeInput.value = exercicio.link;
+      document.getElementById('container-link').style.display = 'block';
+      document.getElementById('container-pesquisa').style.display = 'none';
+      preExibirVideo();
     } else if (exercicio.modo === 'pesquisa') {
-      // Construir o link do YouTube a partir do videoId
-      videoLink = 'https://www.youtube.com/watch?v=' + exercicio.videoId;
+      modoVideoSelect.value = 'pesquisar';
+      document.getElementById('container-link').style.display = 'none';
+      document.getElementById('container-pesquisa').style.display = 'block';
+      termoPesquisaInput.dataset.videoId = exercicio.videoId;
+      termoPesquisaInput.dataset.videoTitulo = exercicio.videoTitulo;
+      videoSelecionadoDiv.innerHTML = `<p>Vídeo Selecionado: ${exercicio.videoTitulo}</p>`;
     }
-
-    linkYoutubeInput.value = videoLink;
-
-    // Pré-exibir o vídeo
-    preExibirVideo();
 
   } else {
     tituloModal.textContent = 'Adicionar Exercício';
-    nomeExercicioInput.value = '';
   }
 }
+
 
 // Alterar campos visíveis com base no modo selecionado
 document.getElementById('modo-video').addEventListener('change', function() {
@@ -85,7 +86,7 @@ document.getElementById('form-exercicio').addEventListener('submit', function(ev
   const indice = document.getElementById('indice-exercicio').value;
   const nomeExercicio = document.getElementById('nome-exercicio').value.trim();
   const modoVideo = document.getElementById('modo-video').value;
-  const linkYoutube = document.getElementById('link-youtube').value.trim();
+  const linkYoutube = document.getElementById('link-youtube').value.trim(); // ID corrigido
   const termoPesquisaInput = document.getElementById('termo-pesquisa');
 
   if (!nomeExercicio) {
@@ -130,10 +131,13 @@ document.getElementById('form-exercicio').addEventListener('submit', function(ev
   }
 });
 
+
+
 // Função para mostrar o modal de confirmação
 function mostrarConfirmacao() {
   $('#modalExercicio').modal('hide');
 
+  document.getElementById('confirm-titulo').textContent = exercicioTemp.nome;
   document.getElementById('confirm-nome-video').textContent = exercicioTemp.videoTitulo;
 
   const confirmPreviewVideoDiv = document.getElementById('confirm-preview-video');
@@ -149,7 +153,7 @@ function mostrarConfirmacao() {
   if (videoID) {
     confirmPreviewVideoDiv.innerHTML = `
       <div class="embed-responsive embed-responsive-16by9">
-        <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${videoID}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <iframe src="https://www.youtube-nocookie.com/embed/${videoID}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
       </div>
     `;
   } else {
@@ -312,8 +316,18 @@ function exibirExercicios(dia) {
   lista.innerHTML = ''; // Limpar o conteúdo antes de adicionar novos elementos
 
   exercicios.forEach((exercicio, indice) => {
-    const videoID = extrairVideoID(exercicio.link); // Certifique-se de que 'link' é a propriedade correta
-    console.log(`Exibindo exercício: ${exercicio.nome}, Link do vídeo: ${exercicio.link}, ID do vídeo: ${videoID}`);
+    let videoLink = '';
+    let videoID = '';
+
+    if (exercicio.modo === 'link') {
+      videoLink = exercicio.link;
+      videoID = extrairVideoID(videoLink);
+    } else if (exercicio.modo === 'pesquisa') {
+      videoID = exercicio.videoId;
+      videoLink = `https://www.youtube.com/watch?v=${videoID}`;
+    }
+
+    console.log(`Exibindo exercício: ${exercicio.nome}, Link do vídeo: ${videoLink}, ID do vídeo: ${videoID}`);
 
     const exercicioDiv = document.createElement('div');
     exercicioDiv.className = 'col-12 mb-2';
@@ -321,15 +335,17 @@ function exibirExercicios(dia) {
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">${exercicio.nome}</h5>
-          ${videoID ? `<iframe src="https://www.youtube-nocookie.com/embed/${videoID}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>` : ''}
-          <button class="btn btn-warning" onclick="abrirModal('${dia}', ${indice})">Editar</button>
-          <button class="btn btn-danger" onclick="excluirExercicio('${dia}', ${indice})">Excluir</button>
+          ${videoID ? `<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${videoID}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>` : '<p>Vídeo não disponível</p>'}
+          <button class="btn btn-warning mt-2" onclick="abrirModal('${dia}', ${indice})">Editar</button>
+          <button class="btn btn-danger mt-2" onclick="excluirExercicio('${dia}', ${indice})">Excluir</button>
         </div>
       </div>
     `;
     lista.appendChild(exercicioDiv);
   });
 }
+
+
 
 function extrairVideoID(url) {
   if (!url) return '';
@@ -345,15 +361,14 @@ function extrairVideoID(url) {
   for (const regex of regexes) {
     const match = url.match(regex);
     if (match && match[1]) {
-      // Capturar o ID do vídeo completo, incluindo parâmetros adicionais
-      const paramsIndex = url.indexOf(match[1]) + match[1].length;
-      const params = url.substring(paramsIndex);
-      return match[1] + params;
+      return match[1]; // Retorna apenas o ID do vídeo
     }
   }
 
   return '';
 }
+
+
 
 function ativarAba(dia) {
   document.querySelectorAll('.nav-link').forEach(tab => tab.classList.remove('active'));
@@ -388,36 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   ativarAba('segunda'); // Ativar a aba de segunda-feira ao carregar a página
 
-  // Adicionar evento de submissão ao formulário do modal
-  document.getElementById('form-exercicio').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const dia = document.getElementById('dia-atual').value;
-    const indice = document.getElementById('indice-exercicio').value;
-    const nome = document.getElementById('nome-exercicio').value;
-    const link = document.getElementById('link-video').value;
-    salvarExercicio(dia, indice, nome, link);
-    $('#modalExercicio').modal('hide');
-  });
-
-  // Mostrar ou esconder o campo de link do vídeo com base na seleção do modo de vídeo
-  document.getElementById('modo-video').addEventListener('change', function() {
-    const modoVideo = this.value;
-    const linkVideoContainer = document.getElementById('link-video-container');
-    if (modoVideo === 'link') {
-      linkVideoContainer.style.display = 'block';
-    } else {
-      linkVideoContainer.style.display = 'none';
-    }
-  });
 });
-
-function adicionarBotoes(dia) {
-  return `
-    <button class="btn btn-primary mb-2" onclick="abrirModal('${dia}')">Adicionar Exercício</button>
-    <button class="btn btn-danger mb-2" onclick="zerarDia('${dia}')">Zerar Dia</button>
-    <div class="row" id="exercicios-${dia}"></div>
-  `;
-}
 
 // Função para excluir um exercício
 function excluirExercicio(dia, indice) {
