@@ -335,7 +335,7 @@ function exibirExercicios(dia) {
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">${exercicio.nome}</h5>
-          ${videoID ? `<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${videoID}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>` : '<p>Vídeo não disponível</p>'}
+          ${videoID ? `<iframe src="https://www.youtube-nocookie.com/embed/${videoID}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>` : '<p>Vídeo não disponível</p>'}
           <button class="btn btn-warning mt-2" onclick="abrirModal('${dia}', ${indice})">Editar</button>
           <button class="btn btn-danger mt-2" onclick="excluirExercicio('${dia}', ${indice})">Excluir</button>
         </div>
