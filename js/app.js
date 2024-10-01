@@ -150,7 +150,7 @@ function mostrarConfirmacao() {
   if (videoID) {
     confirmPreviewVideoDiv.innerHTML = `
       <div class="embed-responsive embed-responsive-16by9">
-        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/${videoID}" allowfullscreen></iframe>
+        <iframe class="embed-responsive-item" src="https://www.youtube-nocookie.com.com/embed/${videoID}" allowfullscreen></iframe>
       </div>
     `;
   } else {
@@ -259,7 +259,7 @@ function preExibirVideo() {
   if (videoID) {
     previewLinkDiv.innerHTML = `
       <div class="embed-responsive embed-responsive-16by9">
-        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/${videoID}" allowfullscreen></iframe>
+        <iframe class="embed-responsive-item" src="https://www.youtube-nocookie.com/embed/${videoID}" allowfullscreen></iframe>
       </div>
     `;
   } else {
@@ -323,7 +323,7 @@ function exibirExercicios(dia) {
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">${exercicio.nome}</h5>
-          ${videoID ? `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoID}" frameborder="0" allowfullscreen></iframe>` : ''}
+          ${videoID ? `<iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/${videoID}" frameborder="0" allowfullscreen></iframe>` : ''}
           <button class="btn btn-warning" onclick="abrirModal('${dia}', ${indice})">Editar</button>
           <button class="btn btn-danger" onclick="excluirExercicio('${dia}', ${indice})">Excluir</button>
         </div>
