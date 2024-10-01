@@ -300,7 +300,7 @@ function exibirExercicios(dia) {
 
   exercicios.forEach((exercicio, indice) => {
     // Extrair o ID do vídeo do YouTube
-    const videoID = extrairVideoID(exercicio.videoURL);
+    const videoID = extrairVideoID(exercicio.link); // Certifique-se de que 'link' é a propriedade correta
 
     // Adicionar código para exibir cada exercício
     const exercicioDiv = document.createElement('div');
@@ -319,7 +319,6 @@ function exibirExercicios(dia) {
   });
 }
 
-// Função para extrair o ID do vídeo do YouTube a partir do link
 // Função para extrair o ID do vídeo do YouTube a partir do link
 function extrairVideoID(url) {
   if (!url) return '';
@@ -342,7 +341,6 @@ function extrairVideoID(url) {
   return '';
 }
 
-// Função para ativar a aba correspondente ao dia selecionado
 // Função para ativar a aba correspondente ao dia selecionado
 function ativarAba(dia) {
   // Remover a classe 'active' de todas as abas
