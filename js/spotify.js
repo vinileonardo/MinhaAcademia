@@ -515,6 +515,19 @@ async function transferPlaybackHere(device_id) {
 */
 handleRedirect();
 
+/* 
+  Função debounce
+  Evita que múltiplas requisições sejam enviadas rapidamente.
+*/
+function debounce(func, delay) {
+    let debounceTimer;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func.apply(context, args), delay);
+    }
+}
 
 /* 
   Função para alternar o modo repeat 
