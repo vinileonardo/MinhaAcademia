@@ -299,6 +299,9 @@ function exibirExercicios(dia) {
   lista.innerHTML = ''; // Limpar o conteúdo antes de adicionar novos elementos
 
   exercicios.forEach((exercicio, indice) => {
+    // Extrair o ID do vídeo do YouTube
+    const videoID = extrairVideoID(exercicio.videoURL);
+
     // Adicionar código para exibir cada exercício
     const exercicioDiv = document.createElement('div');
     exercicioDiv.className = 'col-12 mb-2';
@@ -306,6 +309,7 @@ function exibirExercicios(dia) {
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">${exercicio.nome}</h5>
+          ${videoID ? `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoID}" frameborder="0" allowfullscreen></iframe>` : ''}
           <button class="btn btn-warning" onclick="abrirModal('${dia}', ${indice})">Editar</button>
           <button class="btn btn-danger" onclick="excluirExercicio('${dia}', ${indice})">Excluir</button>
         </div>
@@ -316,6 +320,7 @@ function exibirExercicios(dia) {
 }
 
 // Função para extrair o ID do vídeo do YouTube a partir do link
+// Função para extrair o ID do vídeo do YouTube a partir do link
 function extrairVideoID(url) {
   if (!url) return '';
 
@@ -324,7 +329,7 @@ function extrairVideoID(url) {
     /(?:\?v=|&v=|youtu\.be\/|embed\/|\/v\/|\/vi\/|\/watch\?v=|\/watch\?.+&v=)([^&\n?#]+)/,
     /youtube\.com\/shorts\/([^&\n?#]+)/,
     /youtube\.com\/embed\/([^&\n?#]+)/,
-    /youtube\.com\/v\/([^&\n?#]+)/
+    /youtube\.com\/v\/([^&\n?#]+)/,
   ];
 
   for (const regex of regexes) {
@@ -337,6 +342,7 @@ function extrairVideoID(url) {
   return '';
 }
 
+// Função para ativar a aba correspondente ao dia selecionado
 // Função para ativar a aba correspondente ao dia selecionado
 function ativarAba(dia) {
   // Remover a classe 'active' de todas as abas
