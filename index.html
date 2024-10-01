@@ -201,36 +201,28 @@
 
       <!-- Controle do player -->
       <div class="col-12 col-md-6 text-center">
-        <div class="player-controls d-flex justify-content-center align-items-center">
-          <!-- Botões de controle -->
-          <button class="btn btn-link text-white mx-2" id="btn-shuffle" aria-label="Shuffle">
-            <i class="fas fa-random"></i>
-          </button>
-          <button class="btn btn-link text-white mx-2" id="btn-prev" aria-label="Previous">
-            <i class="fas fa-step-backward"></i>
-          </button>
-          <button class="btn btn-link text-white mx-2" id="btn-play-pause" aria-label="Play/Pause">
-            <i class="far fa-play-circle fa-2x" id="icon-play-pause"></i>
-          </button>
-          <button class="btn btn-link text-white mx-2" id="btn-next" aria-label="Next">
-            <i class="fas fa-step-forward"></i>
-          </button>
-          <button class="btn btn-link text-white mx-2" id="btn-repeat" aria-label="Repeat">
-            <i class="fas fa-redo-alt"></i>
-          </button>
+        <div class="player-controls d-flex justify-content-center align-items-center position-relative">
+          <!-- Barra de Progresso Circular -->
+          <div class="progress-circle">
+            <svg width="100" height="100">
+              <circle cx="50" cy="50" r="45" stroke="#535353" stroke-width="5" fill="none"/>
+              <circle id="progress-bar-circle" cx="50" cy="50" r="45" stroke="#1DB954" stroke-width="5" fill="none" stroke-dasharray="283" stroke-dashoffset="283"/>
+            </svg>
+            <!-- Botão Play/Pause -->
+            <button class="btn btn-link text-white position-absolute top-50 start-50 translate-middle" id="btn-play-pause">
+              <i class="far fa-play-circle fa-2x" id="icon-play-pause"></i>
+            </button>
+          </div>
+          <!-- Outros controles -->
+          <!-- ... -->
         </div>
-
-        <!-- Barra de Progresso Simplificada -->
-        <div class="progress-bar-container position-relative mt-2">
-          <div class="progress bg-secondary" style="height: 5px;">
-            <div class="progress-bar bg-primary" id="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
-          <div class="position-absolute w-100 d-flex justify-content-between" style="top: -25px; font-size: 12px;">
-            <span id="current-time">0:00</span>
-            <span id="total-duration">0:00</span>
-          </div>
+        <!-- Tempos -->
+        <div class="progress-container mt-2">
+          <span id="current-time">0:00</span>
+          <span id="total-duration">0:00</span>
         </div>
       </div>
+
 
       <!-- Controle da direita -->
       <div class="col-12 col-md-3 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">

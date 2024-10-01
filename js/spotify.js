@@ -324,13 +324,14 @@ function updatePlayerUI(track, progress_ms, duration_ms) {
 
     // Atualizar a barra de progresso
     if (progress_ms !== undefined && duration_ms !== undefined) {
-      const percent = (progress_ms / duration_ms) * 100;
-      progressBar.style.width = `${percent}%`;
+      const percent = (progress_ms / duration_ms);
+      const dashOffset = 283 * (1 - percent); // 2πr ≈ 283 para r=45
+      document.getElementById('progress-bar-circle').style.strokeDashoffset = dashOffset;
 
       // Atualizar os tempos
       currentTimeEl.textContent = msToTime(progress_ms);
       totalDurationEl.textContent = msToTime(duration_ms);
-    }
+  }
   } else {
     currentTrackElement.textContent = 'Nenhuma música reproduzindo.';
     currentTrackElement.removeAttribute('data-id'); // Remove o ID quando não há faixa
@@ -339,6 +340,8 @@ function updatePlayerUI(track, progress_ms, duration_ms) {
     progressBar.style.width = '0%';
     currentTimeEl.textContent = '0:00';
     totalDurationEl.textContent = '0:00';
+
+    document.getElementById('progress-bar-circle').style.strokeDashoffset = 283;
   }
 }
 
@@ -512,19 +515,6 @@ async function transferPlaybackHere(device_id) {
 */
 handleRedirect();
 
-/* 
-  Função debounce
-  Evita que múltiplas requisições sejam enviadas rapidamente.
-*/
-function debounce(func, delay) {
-    let debounceTimer;
-    return function() {
-        const context = this;
-        const args = arguments;
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => func.apply(context, args), delay);
-    }
-}
 
 /* 
   Função para alternar o modo repeat 
@@ -557,10 +547,12 @@ document.getElementById('btn-repeat').addEventListener('click', debounce(async (
             // Atualizar o ícone para indicar o estado
             const repeatIcon = document.querySelector('#btn-repeat i');
             if (isRepeat) {
-                repeatIcon.classList.add('active-repeat');
-            } else {
-                repeatIcon.classList.remove('active-repeat');
-            }
+              repeatIcon.classList.add('active-repeat');
+              repeatIcon.style.color = '#1DB954';
+          } else {
+              repeatIcon.classList.remove('active-repeat');
+              repeatIcon.style.color = '#b3b3b3';
+          }
         } else {
             const error = await setRepeatResponse.json();
             console.error('Erro ao alternar Repeat:', error);
@@ -601,10 +593,12 @@ document.getElementById('btn-shuffle').addEventListener('click', debounce(async 
             // Atualizar o ícone para indicar o estado
             const shuffleIcon = document.querySelector('#btn-shuffle i');
             if (isShuffle) {
-                shuffleIcon.classList.add('active-shuffle');
-            } else {
-                shuffleIcon.classList.remove('active-shuffle');
-            }
+              shuffleIcon.classList.add('active-shuffle');
+              shuffleIcon.style.color = '#1DB954';
+          } else {
+              shuffleIcon.classList.remove('active-shuffle');
+              shuffleIcon.style.color = '#b3b3b3';
+          }
         } else {
             const error = await setShuffleResponse.json();
             console.error('Erro ao alternar Shuffle:', error);
@@ -624,6 +618,13 @@ document.getElementById('btn-play-pause').addEventListener('click', debounce(asy
     const icon = document.getElementById('icon-play-pause');
     const token = localStorage.getItem('access_token');
     const device_id = localStorage.getItem('device_id');
+
+    const player = window.spotifyPlayer;
+
+    if (!player || !player._options.id) { // Verifica se o player está ready
+        alert('Player não está pronto.');
+        return;
+    }
 
     if (!device_id) {
         alert('Player não está pronto.');
@@ -762,13 +763,9 @@ document.getElementById('spotifyBtn').addEventListener('click', () => {
   });
   
 
-/* 
-  Função para salvar a música atual nos favoritos do usuário.
-  Utiliza a API do Spotify para adicionar a faixa à biblioteca.
-*/
-async function saveCurrentTrack() {
+  async function toggleFavorite() {
     const token = localStorage.getItem('access_token');
-    const trackId = getCurrentTrackId(); // Obtém o ID da faixa atual
+    const trackId = getCurrentTrackId();
 
     if (!trackId) {
         alert('Nenhuma faixa está atualmente reproduzindo.');
@@ -776,36 +773,82 @@ async function saveCurrentTrack() {
     }
 
     try {
-        // Adiciona a faixa à biblioteca do usuário
-        const response = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
-            method: 'PUT',
+        // Verificar se a faixa já está favoritada
+        const checkResponse = await fetch(`https://api.spotify.com/v1/me/tracks/contains?ids=${trackId}`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
+                'Authorization': `Bearer ${token}`
+            }
         });
+        const contains = await checkResponse.json();
+        const isFavorited = contains[0];
 
-        if (response.status === 200 || response.status === 204) {
-            alert('Faixa adicionada aos seus favoritos!');
+        if (isFavorited) {
+            // Remover dos favoritos
+            const removeResponse = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (removeResponse.status === 200) {
+                alert('Faixa removida dos favoritos!');
+                document.querySelector('#btn-favorite i').classList.remove('fas');
+                document.querySelector('#btn-favorite i').classList.add('far');
+            }
         } else {
-            const error = await response.json();
-            console.error('Erro ao adicionar faixa aos favoritos:', error);
-            alert('Não foi possível adicionar a faixa aos favoritos.');
+            // Adicionar aos favoritos
+            const addResponse = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+            });
+            if (addResponse.status === 200 || addResponse.status === 204) {
+                alert('Faixa adicionada aos favoritos!');
+                document.querySelector('#btn-favorite i').classList.remove('far');
+                document.querySelector('#btn-favorite i').classList.add('fas');
+            }
         }
     } catch (error) {
-        console.error('Erro na requisição para adicionar faixa:', error);
-        alert('Ocorreu um erro ao tentar adicionar a faixa aos favoritos.');
+        console.error('Erro ao alternar favoritos:', error);
+        alert('Ocorreu um erro ao tentar alternar os favoritos.');
     }
 }
 
-/* 
-  Event Listener para o botão de Favoritar.
-  Chama a função para salvar a música atual quando clicado.
-*/
+// Atualizar Event Listener
+document.getElementById('btn-favorite').removeEventListener('click', saveCurrentTrack);
 document.getElementById('btn-favorite').addEventListener('click', async (e) => {
-    e.preventDefault(); // Evita o comportamento padrão do link
-    await saveCurrentTrack();
+    e.preventDefault();
+    await toggleFavorite();
 });
+
+// Atualizar UI ao sincronizar
+player.addListener('player_state_changed', async state => {
+    if (!state) return;
+    const currentTrack = state.track_window.current_track;
+    const isPlaying = !state.paused;
+
+    // Atualizar ícone de favorito
+    if (currentTrack) {
+        const response = await fetch(`https://api.spotify.com/v1/me/tracks/contains?ids=${currentTrack.id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const contains = await response.json();
+        const isFavorited = contains[0];
+        const favoriteIcon = document.querySelector('#btn-favorite i');
+        if (isFavorited) {
+            favoriteIcon.classList.remove('far');
+            favoriteIcon.classList.add('fas');
+        } else {
+            favoriteIcon.classList.remove('fas');
+            favoriteIcon.classList.add('far');
+        }
+    }
+});
+
+
 
 /* 
   Função para obter o ID da faixa atual.
@@ -941,6 +984,7 @@ function mostrarConfirmacao() {
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializa os módulos
+    SeekModule.init();
     VolumeModule.init();
 });
 
@@ -952,14 +996,6 @@ const SeekModule = (function() {
     const currentTimeEl = document.getElementById('current-time');
     const totalDurationEl = document.getElementById('total-duration');
 
-    // Tooltip para Seek
-    const tooltipSeek = document.createElement('div');
-    tooltipSeek.classList.add('tooltip-seek');
-    document.body.appendChild(tooltipSeek);
-
-    // Estado de Arrasto
-    let isDraggingSeek = false;
-    let finalPercentSeek = 0;
 
     // Funções Utilitárias
     function msToTime(duration) {
@@ -973,105 +1009,7 @@ const SeekModule = (function() {
         progressBar.style.width = `${percent}%`;
     }
 
-    async function performSeek(percent) {
-        const player = window.spotifyPlayer;
-        if (player) {
-            const token = localStorage.getItem('access_token');
-            try {
-                const response = await fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                const data = await response.json();
-                if (data && data.item && data.item.duration_ms) {
-                    const position_ms = (percent / 100) * data.item.duration_ms;
-                    await player.seek(position_ms);
-                    console.log(`Seek para ${position_ms} ms`);
-                    // Atualiza o estado no localStorage
-                    localStorage.setItem('seek_percent', percent);
-                }
-            } catch (error) {
-                console.error('Erro ao realizar seek:', error);
-            }
-        }
-    }
-
-    // Função para Exibir Tooltip
-    function showTooltip(x, y, text) {
-        const tooltipWidth = tooltipSeek.offsetWidth;
-        const tooltipX = x - (tooltipWidth / 2);
-        tooltipSeek.style.left = `${tooltipX}px`;
-        tooltipSeek.style.top = `${y}px`;
-        tooltipSeek.textContent = text;
-        tooltipSeek.style.display = 'block';
-    }
-
-    function hideTooltip() {
-        tooltipSeek.style.display = 'none';
-        console.log('Tooltip escondido'); // Para verificar se a função é chamada
-    }
-
-
-    // Manipuladores de Eventos
-    function handleMouseDown(e) {
-        e.preventDefault();
-        isDraggingSeek = true;
-    }
-
-        // ... código existente ...
-
-    function handleMouseMove(e) {
-        if (!isDraggingSeek) return;
-
-        const rect = progressMain.getBoundingClientRect();
-        let offsetX = e.clientX - rect.left;
-        offsetX = Math.max(0, Math.min(offsetX, rect.width));
-        const percent = (offsetX / rect.width) * 100;
-
-        updateUI(handleMain, progressBarMain, percent); // Atualiza a UI imediatamente
-        finalPercentSeek = percent;
-
-        // Atualiza o Tooltip
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            fetch(`https://api.spotify.com/v1/me/player/currently-playing?market=BR`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.item && data.item.duration_ms) {
-                    const seekTimeMs = (percent / 100) * data.item.duration_ms;
-                    const seekTime = msToTime(seekTimeMs);
-                    const tooltipX = e.clientX;
-                    const tooltipY = rect.top - 30; // Posição acima da barra
-                    showTooltip(tooltipX, tooltipY, seekTime);
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao buscar dados para tooltip de seek:', error);
-            });
-        }
-    }
-
-    function handleMouseUp() {
-        if (isDraggingSeek) {
-            isDraggingSeek = false;
-            hideTooltip();
-            performSeek(finalPercentSeek);
-        }
-    }
-
-    async function handleClick(e) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const percent = (offsetX / rect.width) * 100;
-
-        updateUI(handleMain, progressBarMain, percent);
-        await performSeek(percent);
-    }
+    
 
     async function updateProgress() {
         const token = localStorage.getItem('access_token');
@@ -1195,11 +1133,11 @@ const VolumeModule = (function() {
 
     // Função para Exibir Tooltip
     function showTooltip(x, y, text) {
-        tooltipVolume.style.left = `${x}px`;
-        tooltipVolume.style.top = `${y}px`;
-        tooltipVolume.textContent = text;
-        tooltipVolume.style.display = 'block';
-    }
+      tooltipVolume.style.left = `${x}px`;
+      tooltipVolume.style.top = `${y}px`;
+      tooltipVolume.textContent = text;
+      tooltipVolume.style.display = 'block';
+  }
 
     function hideTooltip() {
         tooltipVolume.style.display = 'none';
@@ -1214,25 +1152,25 @@ const VolumeModule = (function() {
     const throttledVolumeUpdate = throttle(performVolumeUpdate, 100); // Limita a 10 chamadas por segundo
 
     function handleMouseMove(e) {
-        if (!isDraggingVolume) return;
-
-        const rect = progressVolume.getBoundingClientRect();
-        let offsetX = e.clientX - rect.left;
-        offsetX = Math.max(0, Math.min(offsetX, rect.width));
-        const percent = (offsetX / rect.width) * 100;
-
-        // Atualiza a UI imediatamente
-        updateUI(handleVolume, volumeBar, percent);
-
-        // Envia a atualização de volume de forma throttled
-        throttledVolumeUpdate(percent);
-
-        // Atualiza o Tooltip
-        const tooltipText = `${Math.round(percent)}%`;
-        const tooltipX = e.clientX;
-        const tooltipY = rect.top - 30; // Posição acima da barra
-        showTooltip(tooltipX, tooltipY, tooltipText);
-    }
+      if (!isDraggingVolume) return;
+  
+      const rect = progressVolume.getBoundingClientRect();
+      let offsetX = e.clientX - rect.left;
+      offsetX = Math.max(0, Math.min(offsetX, rect.width));
+      const percent = (offsetX / rect.width) * 100;
+  
+      // Atualiza a UI imediatamente
+      updateUI(handleVolume, volumeBar, percent);
+  
+      // Envia a atualização de volume de forma throttled
+      throttledVolumeUpdate(percent);
+  
+      // Atualiza o Tooltip
+      const tooltipText = `${Math.round(percent)}%`;
+      const tooltipX = e.clientX;
+      const tooltipY = rect.top - 10; // Ajuste conforme necessário
+      showTooltip(tooltipX, tooltipY, tooltipText);
+  }
 
     function handleMouseUp() {
         if (isDraggingVolume) {

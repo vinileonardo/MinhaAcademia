@@ -50,18 +50,10 @@ body {
     color: #FFFFFF !important;
 }
 
-/* 
-  Indicação visual para botão Repeat ativo
-*/
-#btn-repeat.active-repeat i {
-    color: #1DB954; /* Verde para indicar ativo */
-}
 
-/* 
-  Indicação visual para botão Shuffle ativo
-*/
-#btn-shuffle.active-shuffle i {
-    color: #1DB954; /* Verde para indicar ativo */
+
+.active-repeat {
+    color: #1DB954 !important;
 }
 
 /* 
@@ -387,11 +379,6 @@ body {
     background-color: #1dd05d; /* Verde */
 }
 
-/* Efeitos de Hover na Bolinha */
-.progress-handle:hover {
-    background-color: #1dd05d;
-    transform: translate(-50%, -50%) scale(1.2);
-}
 
 /* Hover nos Ícones */
 #player i:hover {
@@ -452,12 +439,6 @@ body {
     transition: background-color 0.3s; /* Mantém a transição para cor */
 }
 
-/* Transição para o handle durante hover */
-.progress-handle:hover {
-    background-color: #1dd05d;
-    transform: translate(-50%, -50%) scale(1.2);
-    transition: background-color 0.3s, transform 0.3s; /* Mantém as transições existentes */
-}
 
 
 /* Barra de Progresso Simplificada */
@@ -474,31 +455,80 @@ body {
     transition: width 0.5s ease;
   }
 
-  /* Tooltip para seek (se necessário) */
-   .tooltip-volume {
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.75);
-    color: #fff;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-size: 12px;
-    pointer-events: none;
-    transform: translate(-50%, -100%);
-    white-space: nowrap;
-    z-index: 1000;
-  }
 
-  /* Ícones ativos de shuffle e repeat */
-.active-shuffle {
-    color: #0d6efd; /* Cor primária para indicar ativo */
-  }
+
+  .active-shuffle {
+    color: #1DB954 !important;
+}
   
-  .active-repeat {
-    color: #0d6efd; /* Cor primária para indicar ativo */
-  }
+
   
   /* Botão de carregamento */
   .loading {
     pointer-events: none;
     opacity: 0.6;
   }
+
+  .progress-circle {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.progress-circle svg {
+    transform: rotate(-90deg);
+}
+
+#progress-bar-circle {
+    transition: stroke-dashoffset 0.5s linear;
+}
+
+.player-controls button {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+
+.tooltip-volume {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 50%;
+    font-size: 12px;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+.progress-handle {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background-color: #1DB954;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.progress-handle:hover {
+    background-color: #1ed760;
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+#btn-favorite i {
+    transition: color 0.3s;
+}
+
+#btn-favorite i.fas {
+    color: #1DB954;
+}
+
+#btn-favorite i.far {
+    color: #b3b3b3;
+}
