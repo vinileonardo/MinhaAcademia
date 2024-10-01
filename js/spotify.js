@@ -4,8 +4,9 @@ import { PlayerModule } from './player.js';
 import { ControlsModule } from './controls.js';
 import { VolumeSeekModule } from './volumeSeek.js';
 import { FavoritesModule } from './favorites.js';
+import { UIUpdater } from './ui.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+export async function initializeApp() {
     // Lida com o redirecionamento de autenticação
     await AuthModule.handleRedirect();
 
@@ -17,10 +18,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         loginModal.show();
     }
 
-    // Inicializa outros módulos
-    // Note que alguns módulos já são inicializados dentro de player.js
-    // Então, pode não ser necessário inicializá-los aqui novamente
-    // ControlsModule.init();
-    // VolumeSeekModule.init();
-    // FavoritesModule.init();
-});
+    // Inicializa outros módulos que dependem do player estar pronto
+    // Já inicializados dentro PlayerModule
+}
