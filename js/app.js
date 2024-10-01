@@ -292,6 +292,21 @@ function obterTituloVideo(videoID, callback) {
   });
 }
 
+// Função para adicionar ou editar um exercício
+function salvarExercicio(dia, indice, nome, link) {
+  const exercicios = JSON.parse(localStorage.getItem(dia)) || [];
+  const exercicio = { nome, link };
+
+  if (indice !== null && indice !== undefined && indice !== '') {
+    exercicios[indice] = exercicio; // Editar exercício existente
+  } else {
+    exercicios.push(exercicio); // Adicionar novo exercício
+  }
+
+  localStorage.setItem(dia, JSON.stringify(exercicios));
+  exibirExercicios(dia);
+}
+
 // Função para exibir os exercícios de um dia específico
 function exibirExercicios(dia) {
   const exercicios = JSON.parse(localStorage.getItem(dia)) || [];
@@ -299,11 +314,9 @@ function exibirExercicios(dia) {
   lista.innerHTML = ''; // Limpar o conteúdo antes de adicionar novos elementos
 
   exercicios.forEach((exercicio, indice) => {
-    // Extrair o ID do vídeo do YouTube
     const videoID = extrairVideoID(exercicio.link); // Certifique-se de que 'link' é a propriedade correta
     console.log(`Exibindo exercício: ${exercicio.nome}, Link do vídeo: ${exercicio.link}, ID do vídeo: ${videoID}`);
 
-    // Adicionar código para exibir cada exercício
     const exercicioDiv = document.createElement('div');
     exercicioDiv.className = 'col-12 mb-2';
     exercicioDiv.innerHTML = `
@@ -320,11 +333,9 @@ function exibirExercicios(dia) {
   });
 }
 
-// Função para extrair o ID do vídeo do YouTube a partir do link
 function extrairVideoID(url) {
   if (!url) return '';
 
-  // Diferentes formatos de URL do YouTube
   const regexes = [
     /(?:\?v=|&v=|youtu\.be\/|embed\/|\/v\/|\/vi\/|\/watch\?v=|\/watch\?.+&v=)([^&\n?#]+)/,
     /youtube\.com\/shorts\/([^&\n?#]+)/,
@@ -342,22 +353,25 @@ function extrairVideoID(url) {
   return '';
 }
 
-// Função para ativar a aba correspondente ao dia selecionado
 function ativarAba(dia) {
-  // Remover a classe 'active' de todas as abas
   document.querySelectorAll('.nav-link').forEach(tab => tab.classList.remove('active'));
-  // Adicionar a classe 'active' à aba selecionada
   document.querySelector(`[data-bs-toggle="tab"][onclick="ativarAba('${dia}')"]`).classList.add('active');
 
-  // Exibir o conteúdo da aba selecionada
   document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
   document.getElementById(`nav-${dia}`).classList.add('show', 'active');
 
-  // Limpar o conteúdo da aba antes de exibir os exercícios
   const lista = document.getElementById(`exercicios-${dia}`);
   lista.innerHTML = '';
 
   exibirExercicios(dia);
+}
+
+function adicionarBotoes(dia) {
+  return `
+    <button class="btn btn-primary mb-2" onclick="abrirModal('${dia}')">Adicionar Exercício</button>
+    <button class="btn btn-danger mb-2" onclick="zerarDia('${dia}')">Zerar Dia</button>
+    <div class="row" id="exercicios-${dia}"></div>
+  `;
 }
 
 // Ativa a primeira aba ao carregar a página
@@ -371,6 +385,28 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('nav-domingo').innerHTML = adicionarBotoes('domingo');
 
   ativarAba('segunda'); // Ativar a aba de segunda-feira ao carregar a página
+
+  // Adicionar evento de submissão ao formulário do modal
+  document.getElementById('form-exercicio').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const dia = document.getElementById('dia-atual').value;
+    const indice = document.getElementById('indice-exercicio').value;
+    const nome = document.getElementById('nome-exercicio').value;
+    const link = document.getElementById('link-video').value;
+    salvarExercicio(dia, indice, nome, link);
+    $('#modalExercicio').modal('hide');
+  });
+
+  // Mostrar ou esconder o campo de link do vídeo com base na seleção do modo de vídeo
+  document.getElementById('modo-video').addEventListener('change', function() {
+    const modoVideo = this.value;
+    const linkVideoContainer = document.getElementById('link-video-container');
+    if (modoVideo === 'link') {
+      linkVideoContainer.style.display = 'block';
+    } else {
+      linkVideoContainer.style.display = 'none';
+    }
+  });
 });
 
 function adicionarBotoes(dia) {
