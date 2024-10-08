@@ -200,7 +200,15 @@
       </div>
 
       <!-- Controle do player -->
-      <div class="player-controls d-flex justify-content-center align-items-center position-relative">
+      <div class="player-controls d-flex justify-content-center align-items-center position-relative">       
+
+        <!-- Outros controles -->
+        <button class="btn btn-link text-white mx-2" id="btn-shuffle" aria-label="Shuffle">
+          <i class="fas fa-random"></i>
+        </button>
+        <button class="btn btn-link text-white mx-2" id="btn-prev" aria-label="Previous">
+          <i class="fas fa-step-backward"></i>
+        </button>
         <!-- Barra de Progresso Circular -->
         <div class="progress-circle">
           <svg width="100" height="100">
@@ -212,14 +220,6 @@
             <i class="far fa-play-circle fa-2x" id="icon-play-pause"></i>
           </button>
         </div>
-
-        <!-- Outros controles -->
-        <button class="btn btn-link text-white mx-2" id="btn-shuffle" aria-label="Shuffle">
-          <i class="fas fa-random"></i>
-        </button>
-        <button class="btn btn-link text-white mx-2" id="btn-prev" aria-label="Previous">
-          <i class="fas fa-step-backward"></i>
-        </button>
         <button class="btn btn-link text-white mx-2" id="btn-next" aria-label="Next">
           <i class="fas fa-step-forward"></i>
         </button>
