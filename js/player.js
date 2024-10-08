@@ -4,6 +4,7 @@ import { UIUpdater } from './ui.js';
 
 export const PlayerModule = (function() {
     let player;
+    let playbackInterval; // Intervalo para atualizar o progresso
 
     async function initializePlayer(token) {
         return new Promise((resolve, reject) => {
@@ -17,7 +18,7 @@ export const PlayerModule = (function() {
             player.addListener('ready', ({ device_id }) => {
                 console.log('Player está pronto com o ID:', device_id);
                 localStorage.setItem('device_id', device_id);
-                transferPlaybackHere(device_id, token); // Passa o token para a função
+                transferPlaybackHere(device_id, token);
                 resolve();
             });
 
@@ -28,7 +29,7 @@ export const PlayerModule = (function() {
 
             player.addListener('authentication_error', ({ message }) => {
                 console.error('Erro de autenticação:', message);
-                AuthModule.initiateAuth(); // Reautenticar em caso de erro
+                AuthModule.initiateAuth();
             });
 
             player.addListener('account_error', ({ message }) => {
@@ -37,10 +38,31 @@ export const PlayerModule = (function() {
 
             player.addListener('player_state_changed', state => {
                 if (!state) return;
+
                 const currentTrack = state.track_window.current_track;
                 const progress_ms = state.position;
                 const duration_ms = state.duration;
+                const isPlaying = !state.paused;
+
                 UIUpdater.updatePlayerUI(currentTrack, progress_ms, duration_ms);
+
+                // Limpar intervalo anterior, se existir
+                if (playbackInterval) {
+                    clearInterval(playbackInterval);
+                }
+
+                if (isPlaying) {
+                    // Iniciar intervalo para atualizar o progresso
+                    playbackInterval = setInterval(() => {
+                        UIUpdater.updateProgress(state.position + 1000, duration_ms);
+                        state.position += 1000;
+                    }, 1000);
+                } else {
+                    // Se estiver pausado, certifique-se de que o progresso não seja atualizado
+                    if (playbackInterval) {
+                        clearInterval(playbackInterval);
+                    }
+                }
             });
 
             // Conectar ao player

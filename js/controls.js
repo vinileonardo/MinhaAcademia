@@ -3,11 +3,11 @@ import { debounce } from './utils.js';
 import { UIUpdater } from './ui.js';
 
 export const ControlsModule = (function() {
-    // State for shuffle and repeat
+    // Estado para shuffle e repeat
     let isRepeat = false;
     let isShuffle = false;
 
-    // Control Functions
+    // Funções de Controle
     async function play() {
         const playButton = document.getElementById('btn-play-pause');
         if (!playButton) {

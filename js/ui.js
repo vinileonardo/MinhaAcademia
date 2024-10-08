@@ -35,6 +35,19 @@ export const UIUpdater = (function() {
         }
     }
 
+    function updateProgress(progress_ms, duration_ms) {
+        const progressBarCircle = document.getElementById('progress-bar-circle');
+        const currentTimeEl = document.getElementById('current-time');
+
+        if (progress_ms !== undefined && duration_ms !== undefined) {
+            const percent = (progress_ms / duration_ms);
+            const dashOffset = 283 * (1 - percent);
+            progressBarCircle.style.strokeDashoffset = dashOffset;
+
+            currentTimeEl.textContent = msToTime(progress_ms);
+        }
+    }
+
     function updateShuffleUI(isShuffle) {
         const shuffleIcon = document.querySelector('#btn-shuffle i');
         if (isShuffle) {
@@ -83,7 +96,7 @@ export const UIUpdater = (function() {
         let seconds = Math.floor((duration / 1000) % 60),
             minutes = Math.floor((duration / (1000 * 60)) % 60);
 
-        minutes = (minutes < 10) ? "0" + minutes : minutes;
+        minutes = (minutes < 10) ? minutes : minutes;
         seconds = (seconds < 10) ? "0" + seconds : seconds;
 
         return minutes + ":" + seconds;
@@ -91,6 +104,7 @@ export const UIUpdater = (function() {
 
     return {
         updatePlayerUI,
+        updateProgress,
         updateShuffleUI,
         updateRepeatUI,
         updateFavoriteIcon,

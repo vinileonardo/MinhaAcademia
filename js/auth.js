@@ -13,7 +13,7 @@ export const AuthModule = (function() {
         'playlist-read-collaborative',
         'user-library-read',
         'user-library-modify'
-    ];    
+    ];  
 
     function generateCodeVerifier(length = 128) {
         const array = new Uint8Array(Math.ceil(length * 3 / 4));

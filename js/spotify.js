@@ -18,8 +18,18 @@ export async function initializeApp() {
         spotifyBtn.addEventListener('click', function() {
             console.log('Botão Spotify clicado');
             if (AuthModule.isAuthenticated()) {
-                console.log('Usuário autenticado. Exibindo player.');
-                showPlayer(); // Exibe o player
+                const spotifyPlayer = document.getElementById('spotify-player');
+                if (spotifyPlayer) {
+                    if (spotifyPlayer.style.display === 'block') {
+                        console.log('Escondendo o player');
+                        spotifyPlayer.style.display = 'none';
+                    } else {
+                        console.log('Exibindo o player');
+                        spotifyPlayer.style.display = 'block';
+                    }
+                } else {
+                    console.error('Elemento do player NÃO encontrado.');
+                }
             } else {
                 console.log('Usuário NÃO autenticado. Exibindo modal de login.');
                 const loginModalElement = document.getElementById('loginModal');
