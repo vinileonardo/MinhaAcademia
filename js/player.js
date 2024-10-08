@@ -98,7 +98,7 @@ export const PlayerModule = (function() {
                 },
             });
 
-            if (response.status === 204) {
+            if (response.status === 204 || response.status === 200) {
                 console.log('Transferência de reprodução bem-sucedida.');
             } else {
                 const errorText = await response.text();

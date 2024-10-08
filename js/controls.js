@@ -57,7 +57,7 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 204) {
+            if (response.status === 204 || response.status === 200) {
                 console.log('Reprodução iniciada.');
                 playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
             } else {
@@ -99,7 +99,7 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 204) {
+            if (response.status === 204 || response.status === 200) {
                 console.log('Reprodução pausada.');
                 pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
             } else {
@@ -146,7 +146,7 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 204) {
+            if (response.status === 204 || response.status === 200) {
                 console.log('Próxima faixa acionada.');
                 // UI será atualizada pelo evento player_state_changed
             } else {
@@ -175,7 +175,7 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 204) {
+            if (response.status === 204 || response.status === 200) {
                 console.log('Faixa anterior acionada.');
                 // UI será atualizada pelo evento player_state_changed
             } else {
@@ -207,7 +207,7 @@ export const ControlsModule = (function() {
                 }
             });
 
-            if (response.status === 204) {
+            if (response.status === 204 || response.status === 200) {
                 console.log(`Shuffle ${isShuffle ? 'ativado' : 'desativado'}.`);
                 UIUpdater.updateShuffleUI(isShuffle);
             } else {
@@ -243,7 +243,7 @@ export const ControlsModule = (function() {
                 }
             });
 
-            if (response.status === 204) {
+            if (response.status === 204 || response.status === 200) {
                 console.log(`Repeat ${isRepeat ? 'ativado' : 'desativado'}.`);
                 UIUpdater.updateRepeatUI(isRepeat);
             } else {
@@ -282,7 +282,7 @@ export const ControlsModule = (function() {
                 } else {
                     await play();
                 }
-            } else if (response.status === 204) {
+            } else if (response.status === 204 || response.status === 200) {
                 // Nenhuma reprodução está ocorrendo atualmente
                 await play();
             } else {
