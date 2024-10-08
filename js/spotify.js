@@ -9,13 +9,34 @@ import { UIUpdater } from './ui.js';
 export async function initializeApp() {
     console.log('Inicializando aplicação Spotify');
 
+    // Verifica se o usuário está autenticado
+    const isAuthenticated = AuthModule.isAuthenticated();
+    console.log('Usuário autenticado:', isAuthenticated);
+
+    // Se o usuário estiver autenticado, inicializa o player imediatamente
+    if (isAuthenticated) {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            await PlayerModule.initializePlayer(token);
+            showPlayer(); // Exibe o player
+        } else {
+            console.log('Token de acesso não encontrado.');
+        }
+    }
+
     // Registrar evento no botão flutuante do Spotify
     const spotifyBtn = document.getElementById('spotifyBtn');
     if (spotifyBtn) {
         spotifyBtn.addEventListener('click', function() {
             console.log('Botão Spotify clicado');
-            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-            loginModal.show();
+            if (AuthModule.isAuthenticated()) {
+                console.log('Usuário autenticado. Exibindo player.');
+                showPlayer(); // Exibe o player
+            } else {
+                console.log('Usuário NÃO autenticado. Exibindo modal de login.');
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            }
         });
     } else {
         console.log('Botão Spotify NÃO encontrado');
@@ -38,10 +59,36 @@ export async function initializeApp() {
     await AuthModule.handleRedirect();
 
     if (AuthModule.isAuthenticated()) {
-        console.log('Usuário autenticado');
+        console.log('Usuário autenticado após redirecionamento');
         const token = localStorage.getItem('access_token');
-        await PlayerModule.initializePlayer(token);
+        if (token) {
+            await PlayerModule.initializePlayer(token);
+            showPlayer(); // Exibe o player
+        }
     } else {
-        console.log('Usuário NÃO autenticado');
+        console.log('Usuário NÃO autenticado após redirecionamento');
+    }
+}
+
+/**
+ * Função para exibir o player.
+ * Remove o modal de login (se estiver visível) e exibe o footer do player.
+ */
+function showPlayer() {
+    // Esconde o modal de login, se estiver aberto
+    const loginModalElement = document.getElementById('loginModal');
+    if (loginModalElement) {
+        const loginModal = bootstrap.Modal.getInstance(loginModalElement);
+        if (loginModal) {
+            loginModal.hide();
+        }
+    }
+
+    // Exibe o footer do player
+    const spotifyPlayer = document.getElementById('spotify-player');
+    if (spotifyPlayer) {
+        spotifyPlayer.style.display = 'block';
+    } else {
+        console.log('Elemento do player NÃO encontrado.');
     }
 }
