@@ -151,3 +151,13 @@ export const AuthModule = (function() {
         scopes,
     };
 })();
+
+// Corrigir a função de iniciar a autenticação quando o botão "Entrar com Spotify" for clicado
+document.addEventListener('DOMContentLoaded', function() {
+    const loginButton = document.getElementById('loginButton');
+    if (loginButton) {
+      loginButton.addEventListener('click', function() {
+        AuthModule.initiateAuth();
+      });
+    }
+  });
