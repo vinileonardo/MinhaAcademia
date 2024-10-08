@@ -20,17 +20,21 @@ export const AuthModule = (function() {
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=+$/, '');
-        return codeVerifier.substring(0, length);
+        codeVerifier = codeVerifier.substring(0, length);
+        console.log('Code Verifier:', codeVerifier);
+        return codeVerifier;
     }
 
     async function generateCodeChallenge(codeVerifier) {
         const encoder = new TextEncoder();
         const data = encoder.encode(codeVerifier);
         const digest = await window.crypto.subtle.digest('SHA-256', data);
-        return btoa(String.fromCharCode(...new Uint8Array(digest)))
+        const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=+$/, '');
+        console.log('Code Challenge:', codeChallenge);
+        return codeChallenge;
     }
 
     function generateRandomString(length) {
@@ -62,6 +66,7 @@ export const AuthModule = (function() {
             code_challenge: codeChallenge,
         });
 
+        console.log('URL de Autorização:', `https://accounts.spotify.com/authorize?${args.toString()}`);
         window.location = `https://accounts.spotify.com/authorize?${args.toString()}`;
     }
 
@@ -75,6 +80,7 @@ export const AuthModule = (function() {
     }
 
     async function exchangeCodeForToken(code) {
+        console.log('Trocando código por token');
         const codeVerifier = sessionStorage.getItem('code_verifier');
         const storedState = sessionStorage.getItem('state');
 
@@ -104,6 +110,7 @@ export const AuthModule = (function() {
             const data = await response.json();
 
             if (data.access_token) {
+                console.log('Token obtido com sucesso');
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('refresh_token', data.refresh_token);
                 const expiresAt = new Date().getTime() + data.expires_in * 1000;
@@ -128,18 +135,22 @@ export const AuthModule = (function() {
     function isAuthenticated() {
         const token = localStorage.getItem('access_token');
         const expiresAt = localStorage.getItem('expires_at');
+        console.log('Verificando autenticação. Token:', token, 'Expires At:', expiresAt);
         return token && new Date().getTime() < expiresAt;
     }
 
     async function handleRedirect() {
         const params = getUrlParams();
         if (params.code) {
+            console.log('Código de autorização encontrado:', params.code);
             const storedState = sessionStorage.getItem('state');
             if (params.state !== storedState) {
                 console.error('State mismatch. Esperado:', storedState, 'Recebido:', params.state);
                 return;
             }
             await exchangeCodeForToken(params.code);
+        } else {
+            console.log('Nenhum código de autorização encontrado na URL');
         }
     }
 
