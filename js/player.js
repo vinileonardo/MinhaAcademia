@@ -19,7 +19,7 @@ export const PlayerModule = (function() {
         player.addListener('ready', ({ device_id }) => {
             console.log('Player está pronto com o ID:', device_id);
             localStorage.setItem('device_id', device_id);
-            transferPlaybackHere(device_id);
+            transferPlaybackHere(device_id, token); // Passa o token para a função
         });
 
         player.addListener('not_ready', ({ device_id }) => {
@@ -67,13 +67,10 @@ export const PlayerModule = (function() {
         ControlsModule.init();
         VolumeSeekModule.init();
         FavoritesModule.init();
-
-        // Remover sincronização periódica
-        // startPlayerSync(); // Não mais necessário
     }
 
-    async function transferPlaybackHere(device_id) {
-        const token = localStorage.getItem('access_token');
+    async function transferPlaybackHere(device_id, token) {
+        console.log('Transferindo reprodução para o dispositivo:', device_id);
         try {
             const response = await fetch('https://api.spotify.com/v1/me/player', {
                 method: 'PUT',
@@ -97,10 +94,6 @@ export const PlayerModule = (function() {
             console.error('Erro ao transferir reprodução:', error);
         }
     }
-
-    /*
-    Removemos a função synchronizePlayer e o setInterval, pois agora utilizaremos os eventos do player para atualizações em tempo real.
-    */
 
     return {
         initializePlayer

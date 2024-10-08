@@ -11,7 +11,7 @@ export const AuthModule = (function() {
         'user-read-recently-played',
         'playlist-read-private',
         'playlist-read-collaborative',
-    ];
+    ];    
 
     function generateCodeVerifier(length = 128) {
         const array = new Uint8Array(Math.ceil(length * 3 / 4));

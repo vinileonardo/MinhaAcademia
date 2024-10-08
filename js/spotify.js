@@ -54,7 +54,8 @@ export async function initializeApp() {
         console.log('Botão de login encontrado');
         loginButton.addEventListener('click', function() {
             console.log('Botão "Entrar com Spotify" clicado');
-            alert('Botão clicado!'); // Teste para verificar o evento
+            // Remover o alert de teste
+            // alert('Botão clicado!'); // Teste para verificar o evento
             AuthModule.initiateAuth();
         });
     } else {
@@ -71,14 +72,14 @@ export async function initializeApp() {
             await PlayerModule.initializePlayer(token);
             showPlayer(); // Exibe o player
             scheduleTokenRefresh(); // Agendar a atualização do token
+            // Inicializar os módulos dependentes após o player estar pronto
+            ControlsModule.init();
+            VolumeSeekModule.init();
+            FavoritesModule.init();
         }
     } else {
         console.log('Usuário NÃO autenticado após redirecionamento');
     }
-
-    // Inicializa os módulos adicionais após a autenticação
-    VolumeSeekModule.init();
-    // Inicialize outros módulos conforme necessário
 }
 
 /**
