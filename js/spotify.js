@@ -4,7 +4,6 @@ import { PlayerModule } from './player.js';
 import { ControlsModule } from './controls.js';
 import { VolumeSeekModule } from './volumeSeek.js';
 import { FavoritesModule } from './favorites.js';
-import { UIUpdater } from './ui.js';
 
 export async function initializeApp() {
     console.log('Inicializando aplicação Spotify');
@@ -12,18 +11,6 @@ export async function initializeApp() {
     // Verifica se o usuário está autenticado
     const isAuthenticated = AuthModule.isAuthenticated();
     console.log('Usuário autenticado:', isAuthenticated);
-
-    // Se o usuário estiver autenticado, inicializa o player imediatamente
-    if (isAuthenticated) {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            await PlayerModule.initializePlayer(token);
-            showPlayer(); // Exibe o player
-            scheduleTokenRefresh(); // Agendar a atualização do token
-        } else {
-            console.log('Token de acesso não encontrado.');
-        }
-    }
 
     // Registrar evento no botão flutuante do Spotify
     const spotifyBtn = document.getElementById('spotifyBtn');
@@ -54,8 +41,6 @@ export async function initializeApp() {
         console.log('Botão de login encontrado');
         loginButton.addEventListener('click', function() {
             console.log('Botão "Entrar com Spotify" clicado');
-            // Remover o alert de teste
-            // alert('Botão clicado!'); // Teste para verificar o evento
             AuthModule.initiateAuth();
         });
     } else {
@@ -69,13 +54,17 @@ export async function initializeApp() {
         console.log('Usuário autenticado após redirecionamento');
         const token = localStorage.getItem('access_token');
         if (token) {
-            await PlayerModule.initializePlayer(token);
-            showPlayer(); // Exibe o player
-            scheduleTokenRefresh(); // Agendar a atualização do token
-            // Inicializar os módulos dependentes após o player estar pronto
-            ControlsModule.init();
-            VolumeSeekModule.init();
-            FavoritesModule.init();
+            try {
+                await PlayerModule.initializePlayer(token);
+                showPlayer(); // Exibe o player
+                scheduleTokenRefresh(); // Agendar a atualização do token
+                // Inicializar os módulos dependentes após o player estar pronto
+                ControlsModule.init();
+                VolumeSeekModule.init();
+                FavoritesModule.init();
+            } catch (error) {
+                console.error('Erro ao inicializar o player:', error);
+            }
         }
     } else {
         console.log('Usuário NÃO autenticado após redirecionamento');

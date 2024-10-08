@@ -8,7 +8,7 @@ export const FavoritesModule = (function() {
         const trackId = getCurrentTrackId();
 
         if (!trackId) {
-            alert('Nenhuma faixa está atualmente reproduzindo.');
+            console.error('Nenhuma faixa está atualmente reproduzindo.');
             return;
         }
 
@@ -19,37 +19,48 @@ export const FavoritesModule = (function() {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            const contains = await checkResponse.json();
-            const isFavorited = contains[0];
 
-            if (isFavorited) {
-                // Remover dos favoritos
-                const removeResponse = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
+            if (checkResponse.status === 200) {
+                const contains = await checkResponse.json();
+                const isFavorited = contains[0];
+
+                if (isFavorited) {
+                    // Remover dos favoritos
+                    const removeResponse = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (removeResponse.status === 200 || removeResponse.status === 204) {
+                        console.log('Faixa removida dos favoritos!');
+                        UIUpdater.updateFavoriteIcon(false);
+                    } else {
+                        const errorText = await removeResponse.text();
+                        console.error('Erro ao remover faixa dos favoritos:', errorText);
                     }
-                });
-                if (removeResponse.status === 200) {
-                    alert('Faixa removida dos favoritos!');
-                    UIUpdater.updateFavoriteIcon(false);
+                } else {
+                    // Adicionar aos favoritos
+                    const addResponse = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                    });
+                    if (addResponse.status === 200 || addResponse.status === 204) {
+                        console.log('Faixa adicionada aos favoritos!');
+                        UIUpdater.updateFavoriteIcon(true);
+                    } else {
+                        const errorText = await addResponse.text();
+                        console.error('Erro ao adicionar faixa aos favoritos:', errorText);
+                    }
                 }
             } else {
-                // Adicionar aos favoritos
-                const addResponse = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                });
-                if (addResponse.status === 200 || addResponse.status === 204) {
-                    alert('Faixa adicionada aos favoritos!');
-                    UIUpdater.updateFavoriteIcon(true);
-                }
+                const errorText = await checkResponse.text();
+                console.error('Erro ao verificar status de favorito:', errorText);
             }
         } catch (error) {
             console.error('Erro ao alternar favoritos:', error);
-            alert('Ocorreu um erro ao tentar alternar os favoritos.');
         }
     }
 
@@ -65,9 +76,15 @@ export const FavoritesModule = (function() {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            const contains = await response.json();
-            const isFavorited = contains[0];
-            UIUpdater.updateFavoriteIcon(isFavorited);
+
+            if (response.status === 200) {
+                const contains = await response.json();
+                const isFavorited = contains[0];
+                UIUpdater.updateFavoriteIcon(isFavorited);
+            } else {
+                const errorText = await response.text();
+                console.error('Erro ao verificar status de favorito:', errorText);
+            }
         } catch (error) {
             console.error('Erro ao verificar status de favorito:', error);
         }
@@ -80,10 +97,14 @@ export const FavoritesModule = (function() {
 
     function setupEventListeners() {
         const btnFavorite = document.getElementById('btn-favorite');
-        btnFavorite.addEventListener('click', debounce(async (e) => {
-            e.preventDefault();
-            await toggleFavorite();
-        }, 300));
+        if (btnFavorite) {
+            btnFavorite.addEventListener('click', debounce(async (e) => {
+                e.preventDefault();
+                await toggleFavorite();
+            }, 300));
+        } else {
+            console.error('Botão de favorito não encontrado.');
+        }
     }
 
     async function init() {

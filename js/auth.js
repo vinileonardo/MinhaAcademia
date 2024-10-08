@@ -1,7 +1,7 @@
 // auth.js
 export const AuthModule = (function() {
-    const clientId = 'bf525d89f2bb4471bba89160674e9975'; // Substitua pelo seu Client ID
-    const redirectUri = 'https://vinileonardo.github.io/MinhaAcademia/';
+    const clientId = 'bf525d89f2bb4471bba89160674e9975'; // Replace with your Client ID
+    const redirectUri = 'https://vinileonardo.github.io/MinhaAcademia/'; // Replace with your Redirect URI
     const scopes = [
         'streaming',
         'user-read-email',
@@ -11,6 +11,8 @@ export const AuthModule = (function() {
         'user-read-recently-played',
         'playlist-read-private',
         'playlist-read-collaborative',
+        'user-library-read',
+        'user-library-modify'
     ];    
 
     function generateCodeVerifier(length = 128) {
@@ -82,7 +84,6 @@ export const AuthModule = (function() {
     async function exchangeCodeForToken(code) {
         console.log('Trocando código por token');
         const codeVerifier = sessionStorage.getItem('code_verifier');
-        const storedState = sessionStorage.getItem('state');
 
         const body = new URLSearchParams({
             grant_type: 'authorization_code',
@@ -166,7 +167,7 @@ export const AuthModule = (function() {
             if (data.access_token) {
                 console.log('Token atualizado com sucesso');
                 localStorage.setItem('access_token', data.access_token);
-                // Spotify não sempre retorna um novo refresh_token
+                // Spotify nem sempre retorna um novo refresh_token
                 if (data.refresh_token) {
                     localStorage.setItem('refresh_token', data.refresh_token);
                 }
@@ -207,7 +208,7 @@ export const AuthModule = (function() {
         initiateAuth,
         isAuthenticated,
         handleRedirect,
-        refreshAccessToken, // Adicionado
+        refreshAccessToken,
         clientId,
         redirectUri,
         scopes,

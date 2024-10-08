@@ -3,11 +3,11 @@ import { debounce } from './utils.js';
 import { UIUpdater } from './ui.js';
 
 export const ControlsModule = (function() {
-    // Estado para shuffle e repeat
+    // State for shuffle and repeat
     let isRepeat = false;
     let isShuffle = false;
 
-    // Funções de Controle
+    // Control Functions
     async function play() {
         const playButton = document.getElementById('btn-play-pause');
         if (!playButton) {
@@ -18,10 +18,10 @@ export const ControlsModule = (function() {
         playButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         const token = localStorage.getItem('access_token');
-        const device_id = localStorage.getItem('device_id');
+        let device_id = localStorage.getItem('device_id');
 
         if (!device_id) {
-            alert('Player não está pronto.');
+            console.error('Player não está pronto. Dispositivo não encontrado.');
             resetPlayButton();
             return;
         }
@@ -39,19 +39,13 @@ export const ControlsModule = (function() {
             if (response.status === 204) {
                 console.log('Reprodução iniciada.');
                 playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
-            } else if (response.status === 404) {
-                console.error('Erro 404: Dispositivo não encontrado. Verifique se o device_id está correto e o dispositivo está ativo.');
-                alert('Erro ao iniciar reprodução: Dispositivo não encontrado.');
-                resetPlayButton();
             } else {
-                const error = await response.json();
-                console.error('Erro ao iniciar reprodução:', error);
-                alert('Erro ao iniciar reprodução.');
+                const errorText = await response.text();
+                console.error('Erro ao iniciar reprodução:', errorText);
                 resetPlayButton();
             }
         } catch (error) {
             console.error('Erro ao iniciar reprodução:', error);
-            alert('Erro ao iniciar reprodução.');
             resetPlayButton();
         } finally {
             playButton.classList.remove('loading');
@@ -68,10 +62,10 @@ export const ControlsModule = (function() {
         pauseButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         const token = localStorage.getItem('access_token');
-        const device_id = localStorage.getItem('device_id');
+        let device_id = localStorage.getItem('device_id');
 
         if (!device_id) {
-            alert('Player não está pronto.');
+            console.error('Player não está pronto.');
             resetPauseButton();
             return;
         }
@@ -87,19 +81,13 @@ export const ControlsModule = (function() {
             if (response.status === 204) {
                 console.log('Reprodução pausada.');
                 pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
-            } else if (response.status === 404) {
-                console.error('Erro 404: Dispositivo não encontrado. Verifique se o device_id está correto e o dispositivo está ativo.');
-                alert('Erro ao pausar reprodução: Dispositivo não encontrado.');
-                resetPauseButton();
             } else {
-                const error = await response.json();
-                console.error('Erro ao pausar reprodução:', error);
-                alert('Erro ao pausar reprodução.');
+                const errorText = await response.text();
+                console.error('Erro ao pausar reprodução:', errorText);
                 resetPauseButton();
             }
         } catch (error) {
             console.error('Erro ao pausar reprodução:', error);
-            alert('Erro ao pausar reprodução.');
             resetPauseButton();
         } finally {
             pauseButton.classList.remove('loading');
@@ -122,10 +110,10 @@ export const ControlsModule = (function() {
 
     async function nextTrack() {
         const token = localStorage.getItem('access_token');
-        const device_id = localStorage.getItem('device_id');
+        let device_id = localStorage.getItem('device_id');
 
         if (!device_id) {
-            alert('Player não está pronto.');
+            console.error('Player não está pronto.');
             return;
         }
 
@@ -140,26 +128,21 @@ export const ControlsModule = (function() {
             if (response.status === 204) {
                 console.log('Próxima faixa acionada.');
                 // UI será atualizada pelo evento player_state_changed
-            } else if (response.status === 404) {
-                console.error('Erro 404: Dispositivo não encontrado. Verifique se o device_id está correto e o dispositivo está ativo.');
-                alert('Erro ao avançar faixa: Dispositivo não encontrado.');
             } else {
-                const error = await response.json();
-                console.error('Erro ao avançar faixa:', error);
-                alert('Erro ao avançar faixa.');
+                const errorText = await response.text();
+                console.error('Erro ao avançar faixa:', errorText);
             }
         } catch (error) {
             console.error('Erro ao avançar faixa:', error);
-            alert('Erro ao avançar faixa.');
         }
     }
 
     async function previousTrack() {
         const token = localStorage.getItem('access_token');
-        const device_id = localStorage.getItem('device_id');
+        let device_id = localStorage.getItem('device_id');
 
         if (!device_id) {
-            alert('Player não está pronto.');
+            console.error('Player não está pronto.');
             return;
         }
 
@@ -174,32 +157,27 @@ export const ControlsModule = (function() {
             if (response.status === 204) {
                 console.log('Faixa anterior acionada.');
                 // UI será atualizada pelo evento player_state_changed
-            } else if (response.status === 404) {
-                console.error('Erro 404: Dispositivo não encontrado. Verifique se o device_id está correto e o dispositivo está ativo.');
-                alert('Erro ao retroceder faixa: Dispositivo não encontrado.');
             } else {
-                const error = await response.json();
-                console.error('Erro ao retroceder faixa:', error);
-                alert('Erro ao retroceder faixa.');
+                const errorText = await response.text();
+                console.error('Erro ao retroceder faixa:', errorText);
             }
         } catch (error) {
             console.error('Erro ao retroceder faixa:', error);
-            alert('Erro ao retroceder faixa.');
         }
     }
 
     async function toggleShuffle() {
         const token = localStorage.getItem('access_token');
-        const device_id = localStorage.getItem('device_id');
+        let device_id = localStorage.getItem('device_id');
 
         if (!device_id) {
-            alert('Player não está pronto.');
+            console.error('Player não está pronto.');
             return;
         }
 
         try {
             isShuffle = !isShuffle;
-            const shuffleState = isShuffle ? 'true' : 'false';
+            const shuffleState = isShuffle;
 
             const response = await fetch(`https://api.spotify.com/v1/me/player/shuffle?state=${shuffleState}&device_id=${device_id}`, {
                 method: 'PUT',
@@ -209,28 +187,23 @@ export const ControlsModule = (function() {
             });
 
             if (response.status === 204) {
-                console.log(`Shuffle ${isShuffle ? 'On' : 'Off'}`);
+                console.log(`Shuffle ${isShuffle ? 'ativado' : 'desativado'}.`);
                 UIUpdater.updateShuffleUI(isShuffle);
-            } else if (response.status === 404) {
-                console.error('Erro 404: Dispositivo não encontrado. Verifique se o device_id está correto e o dispositivo está ativo.');
-                alert('Erro ao alternar Shuffle: Dispositivo não encontrado.');
             } else {
-                const error = await response.json();
-                console.error('Erro ao alternar Shuffle:', error);
-                alert('Erro ao alternar Shuffle.');
+                const errorText = await response.text();
+                console.error('Erro ao alternar Shuffle:', errorText);
             }
         } catch (error) {
             console.error('Erro ao alternar Shuffle:', error);
-            alert('Erro ao alternar Shuffle.');
         }
     }
 
     async function toggleRepeat() {
         const token = localStorage.getItem('access_token');
-        const device_id = localStorage.getItem('device_id');
+        let device_id = localStorage.getItem('device_id');
 
         if (!device_id) {
-            alert('Player não está pronto.');
+            console.error('Player não está pronto.');
             return;
         }
 
@@ -246,28 +219,23 @@ export const ControlsModule = (function() {
             });
 
             if (response.status === 204) {
-                console.log(`Repeat ${isRepeat ? 'On' : 'Off'}`);
+                console.log(`Repeat ${isRepeat ? 'ativado' : 'desativado'}.`);
                 UIUpdater.updateRepeatUI(isRepeat);
-            } else if (response.status === 404) {
-                console.error('Erro 404: Dispositivo não encontrado. Verifique se o device_id está correto e o dispositivo está ativo.');
-                alert('Erro ao alternar Repeat: Dispositivo não encontrado.');
             } else {
-                const error = await response.json();
-                console.error('Erro ao alternar Repeat:', error);
-                alert('Erro ao alternar Repeat.');
+                const errorText = await response.text();
+                console.error('Erro ao alternar Repeat:', errorText);
             }
         } catch (error) {
             console.error('Erro ao alternar Repeat:', error);
-            alert('Erro ao alternar Repeat.');
         }
     }
 
     async function togglePlayPause() {
         const token = localStorage.getItem('access_token');
-        const device_id = localStorage.getItem('device_id');
+        let device_id = localStorage.getItem('device_id');
 
         if (!device_id) {
-            alert('Player não está pronto.');
+            console.error('Player não está pronto.');
             return;
         }
 
@@ -288,16 +256,12 @@ export const ControlsModule = (function() {
                 } else {
                     await play();
                 }
-            } else if (response.status === 404) {
-                console.error('Erro 404: Dispositivo não encontrado. Verifique se o device_id está correto e o dispositivo está ativo.');
-                alert('Erro ao alternar Play/Pause: Dispositivo não encontrado.');
             } else {
-                console.error('Erro ao verificar o estado do player:', response.status);
-                alert('Erro ao verificar o estado do player.');
+                const errorText = await response.text();
+                console.error('Erro ao verificar o estado do player:', errorText);
             }
         } catch (error) {
             console.error('Erro ao alternar Play/Pause:', error);
-            alert('Erro ao alternar Play/Pause.');
         }
     }
 
@@ -323,13 +287,13 @@ export const ControlsModule = (function() {
         if (btnNext) {
             btnNext.addEventListener('click', debounce(nextTrack, 300));
         } else {
-            console.error('Botão de next não encontrado.');
+            console.error('Botão de próxima faixa não encontrado.');
         }
 
         if (btnPrev) {
             btnPrev.addEventListener('click', debounce(previousTrack, 300));
         } else {
-            console.error('Botão de previous não encontrado.');
+            console.error('Botão de faixa anterior não encontrado.');
         }
 
         if (btnPlayPause) {
