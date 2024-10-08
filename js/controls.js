@@ -57,7 +57,7 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 204 || response.status === 200) {
+            if (response.ok) { // Trata qualquer status 2xx como sucesso
                 console.log('Reprodução iniciada.');
                 playButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
             } else {
@@ -99,7 +99,7 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 204 || response.status === 200) {
+            if (response.ok) { // Trata qualquer status 2xx como sucesso
                 console.log('Reprodução pausada.');
                 pauseButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
             } else {
@@ -112,20 +112,6 @@ export const ControlsModule = (function() {
             resetPauseButton();
         } finally {
             pauseButton.classList.remove('loading');
-        }
-    }
-
-    function resetPlayButton() {
-        const playButton = document.getElementById('btn-play-pause');
-        if (playButton) {
-            playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
-        }
-    }
-
-    function resetPauseButton() {
-        const pauseButton = document.getElementById('btn-play-pause');
-        if (pauseButton) {
-            pauseButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
         }
     }
 
@@ -146,7 +132,7 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 204 || response.status === 200) {
+            if (response.ok) { // Trata qualquer status 2xx como sucesso
                 console.log('Próxima faixa acionada.');
                 // UI será atualizada pelo evento player_state_changed
             } else {
@@ -175,7 +161,7 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 204 || response.status === 200) {
+            if (response.ok) { // Trata qualquer status 2xx como sucesso
                 console.log('Faixa anterior acionada.');
                 // UI será atualizada pelo evento player_state_changed
             } else {
@@ -207,7 +193,7 @@ export const ControlsModule = (function() {
                 }
             });
 
-            if (response.status === 204 || response.status === 200) {
+            if (response.ok) { // Trata qualquer status 2xx como sucesso
                 console.log(`Shuffle ${isShuffle ? 'ativado' : 'desativado'}.`);
                 UIUpdater.updateShuffleUI(isShuffle);
             } else {
@@ -243,7 +229,7 @@ export const ControlsModule = (function() {
                 }
             });
 
-            if (response.status === 204 || response.status === 200) {
+            if (response.ok) { // Trata qualquer status 2xx como sucesso
                 console.log(`Repeat ${isRepeat ? 'ativado' : 'desativado'}.`);
                 UIUpdater.updateRepeatUI(isRepeat);
             } else {
@@ -275,16 +261,18 @@ export const ControlsModule = (function() {
                 },
             });
 
-            if (response.status === 200) {
-                const data = await response.json();
-                if (data.is_playing) {
-                    await pause();
-                } else {
+            if (response.ok) { // Trata qualquer status 2xx como sucesso
+                if (response.status === 204) {
+                    // Nenhuma reprodução está ocorrendo atualmente
                     await play();
+                } else if (response.status === 200) {
+                    const data = await response.json();
+                    if (data.is_playing) {
+                        await pause();
+                    } else {
+                        await play();
+                    }
                 }
-            } else if (response.status === 204 || response.status === 200) {
-                // Nenhuma reprodução está ocorrendo atualmente
-                await play();
             } else {
                 const errorMessage = await getErrorMessage(response);
                 console.error(`Erro ao verificar o estado do player: ${response.status} ${response.statusText} - ${errorMessage}`);
@@ -294,7 +282,22 @@ export const ControlsModule = (function() {
         }
     }
 
-    // Definir setupEventListeners após as funções que ele usa
+    // Funções auxiliares para resetar os botões
+    function resetPlayButton() {
+        const playButton = document.getElementById('btn-play-pause');
+        if (playButton) {
+            playButton.innerHTML = '<i class="fas fa-play-circle fa-2x" id="icon-play-pause"></i>';
+        }
+    }
+
+    function resetPauseButton() {
+        const pauseButton = document.getElementById('btn-play-pause');
+        if (pauseButton) {
+            pauseButton.innerHTML = '<i class="fas fa-pause-circle fa-2x" id="icon-play-pause"></i>';
+        }
+    }
+
+    // Configuração dos Event Listeners
     function setupEventListeners() {
         const btnShuffle = document.getElementById('btn-shuffle');
         const btnRepeat = document.getElementById('btn-repeat');
@@ -333,7 +336,7 @@ export const ControlsModule = (function() {
         }
     }
 
-    // Função de inicialização
+    // Função de Inicialização
     function init() {
         setupEventListeners();
     }
