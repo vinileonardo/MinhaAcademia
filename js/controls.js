@@ -28,7 +28,7 @@ export const ControlsModule = (function() {
         return errorMessage;
     }
 
-    // Funções de Controle
+    // Funções de Controle (Definidas como declarações de função)
     async function play() {
         const playButton = document.getElementById('btn-play-pause');
         if (!playButton) {
@@ -294,6 +294,7 @@ export const ControlsModule = (function() {
         }
     }
 
+    // Definir setupEventListeners após as funções que ele usa
     function setupEventListeners() {
         const btnShuffle = document.getElementById('btn-shuffle');
         const btnRepeat = document.getElementById('btn-repeat');
@@ -332,6 +333,7 @@ export const ControlsModule = (function() {
         }
     }
 
+    // Função de inicialização
     function init() {
         setupEventListeners();
     }
