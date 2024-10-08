@@ -43,6 +43,7 @@ export const AuthModule = (function() {
     }
 
     async function initiateAuth() {
+        console.log('Iniciando autenticação com Spotify');
         const codeVerifier = generateCodeVerifier();
         const codeChallenge = await generateCodeChallenge(codeVerifier);
         const state = generateRandomString(16);
@@ -151,13 +152,3 @@ export const AuthModule = (function() {
         scopes,
     };
 })();
-
-// Corrigir a função de iniciar a autenticação quando o botão "Entrar com Spotify" for clicado
-document.addEventListener('DOMContentLoaded', function() {
-    const loginButton = document.getElementById('loginButton');
-    if (loginButton) {
-      loginButton.addEventListener('click', function() {
-        AuthModule.initiateAuth();
-      });
-    }
-  });

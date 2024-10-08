@@ -276,6 +276,7 @@
  <!-- Definir onSpotifyWebPlaybackSDKReady antes de carregar o SDK -->
  <script>
      window.onSpotifyWebPlaybackSDKReady = () => {
+        console.log('Spotify Web Playback SDK está pronto');
          // Importa o módulo app.js e chama a função de inicialização
          import('./js/spotify.js').then(module => {
              module.initializeApp();
