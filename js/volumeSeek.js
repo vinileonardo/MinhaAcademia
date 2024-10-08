@@ -117,7 +117,7 @@ export const VolumeSeekModule = (function() {
                     }
                 }
             } else {
-                const defaultVolume = 50;
+                const defaultVolume = 20;
                 await player.setVolume(defaultVolume / 100);
                 updateUI(handleVolume, volumeBar, defaultVolume);
                 localStorage.setItem('volume_percent', defaultVolume);
