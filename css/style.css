@@ -1,20 +1,13 @@
 /* style.css */
 
-/* 
-  Reset e base
-  Define as cores de fundo e de texto padrão para o corpo da página,
-  bem como a fonte utilizada.
-*/
+/* Reset e base */
 body {
     background-color: #121212;
     color: #FFFFFF;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* 
-  Estilização das abas de navegação
-  Define as cores, transições e efeitos de hover para as abas.
-*/
+/* Estilização das abas de navegação */
 .nav-tabs .nav-link {
     color: #b3b3b3;
     background-color: #181818;
@@ -33,9 +26,7 @@ body {
     color: #1DB954;
 }
 
-/* 
-  Hover para todos os botões para mudar a cor para verde
-*/
+/* Hover para todos os botões para mudar a cor para verde */
 .btn:hover {
     background-color: #1DB954 !important; /* Verde Spotify */
     color: #FFFFFF !important;
@@ -50,16 +41,11 @@ body {
     color: #FFFFFF !important;
 }
 
-
-
 .active-repeat {
     color: #1DB954 !important;
 }
 
-/* 
-  Estilo para o botão flutuante do Spotify
-  Define a posição fixa, tamanho, cores e efeitos de hover.
-*/
+/* Estilização do botão flutuante do Spotify */
 .spotify-float-btn {
     position: fixed;
     bottom: 80px; /* Ajustado para não sobrepor o player */
@@ -83,10 +69,7 @@ body {
     transform: scale(1.1);
 }
 
-/* 
-  Estilo para o player no footer
-  Define a aparência, posição e responsividade do player.
-*/
+/* Estilização do player no footer */
 .spotify-player {
     display: none; /* Inicialmente oculto */
     width: 100%;
@@ -108,10 +91,7 @@ body {
     justify-content: space-between;
 }
 
-/* 
-  Estilo para a arte do álbum
-  Define transições e efeitos de hover para a imagem do álbum.
-*/
+/* Estilização da arte do álbum */
 .album-art img {
     border-radius: 4px;
     transition: transform 0.3s;
@@ -121,10 +101,7 @@ body {
     transform: scale(1.05);
 }
 
-/* 
-  Informações da faixa
-  Define a exibição das informações da faixa atual.
-*/
+/* Informações da faixa */
 .track-info {
     display: flex;
     flex-direction: column;
@@ -146,10 +123,7 @@ body {
     color: #b3b3b3;
 }
 
-/* 
-  Controles de Reprodução
-  Define o estilo dos botões de controle do player.
-*/
+/* Controles de Reprodução */
 .playback-controls .btn {
     width: 36px;
     height: 36px;
@@ -171,10 +145,7 @@ body {
     box-shadow: none;
 }
 
-/* 
-  Barra de Progresso
-  Define o estilo da barra de progresso da música.
-*/
+/* Barra de Progresso */
 .progress-container {
     display: flex;
     flex-direction: column;
@@ -194,10 +165,7 @@ body {
     color: #b3b3b3;
 }
 
-/* 
-  Controle de Volume
-  Define o estilo da barra de volume.
-*/
+/* Controle de Volume */
 .volume-control {
     display: flex;
     align-items: center;
@@ -209,10 +177,7 @@ body {
     cursor: pointer;
 }
 
-/* 
-  Estilos para Resultados de Pesquisa de Vídeo
-  Define o estilo dos itens de resultado na pesquisa de vídeos.
-*/
+/* Resultados de Pesquisa de Vídeo */
 .resultado-item {
     cursor: pointer;
     padding: 10px;
@@ -239,10 +204,7 @@ body {
     color: #1DB954;
 }
 
-/* 
-  Modais
-  Define o estilo dos modais para combinar com o tema escuro da aplicação.
-*/
+/* Modais */
 .modal-content {
     background-color: #282828;
     color: white;
@@ -268,10 +230,7 @@ body {
     box-shadow: none;
 }
 
-/* 
-  Responsividade
-  Ajusta o layout do player para diferentes tamanhos de tela.
-*/
+/* Responsividade */
 @media (max-width: 768px) {
     .player-container {
         flex-direction: column;
@@ -294,10 +253,7 @@ body {
     }
 }
 
-/* 
-  clone.css - Estilos Adicionais
-  Estes estilos complementam o estilo principal e adicionam funcionalidades específicas.
-*/
+/* clone.css - Estilos Adicionais */
 
 /* Estilos gerais */
 * {
@@ -379,35 +335,35 @@ body {
     background-color: #1dd05d; /* Verde */
 }
 
-
-/* Hover nos Ícones */
-#player i:hover {
-    color: #1dd05d;
+.progress-bar-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px; /* Ajuste conforme necessário */
+    margin: 0 auto;
 }
 
-/* Responsividade da Imagem do Álbum */
-.album-image {
-    width: 60px; /* Tamanho padrão para telas médias e grandes */
-    height: 60px;
-    object-fit: cover; /* Mantém a proporção da imagem, cortando se necessário */
-    border-radius: 5px; /* Opcional: adiciona borda arredondada */
-    transition: width 0.3s, height 0.3s; /* Transições suaves */
+.progress-bar {
+    background-color: #1DB954; /* Cor verde Spotify */
+    height: 5px;
+    transition: width 0.5s ease;
+    border-radius: 2.5px;
 }
 
-/* Ajustes para Tamanhos de Tela Menores */
-@media (max-width: 767.98px) {
-    .album-icons {
-        display: none;
-    }
+/* Estilos adicionais para elementos do player */
+.active-shuffle {
+    color: #1DB954 !important;
+}
 
-    .progress-volume {
-        width: 80px;
-    }
+#btn-favorite i {
+    transition: color 0.3s;
+}
 
-    .album-image {
-        width: 40px; /* Reduz o tamanho da imagem em telas pequenas */
-        height: 40px;
-    }
+#btn-favorite i.fas {
+    color: #1DB954;
+}
+
+#btn-favorite i.far {
+    color: #b3b3b3;
 }
 
 /* Spinner de loading */
@@ -430,8 +386,6 @@ body {
     opacity: 0.6;
 }
 
-
-
 /* Transições adicionais para feedback visual durante hover */
 .progress-main:hover .progress-bar,
 .progress-volume:hover .progress-bar {
@@ -439,37 +393,13 @@ body {
     transition: background-color 0.3s; /* Mantém a transição para cor */
 }
 
-
-
-/* Barra de Progresso Simplificada */
-.progress-bar-container {
-    position: relative;
-    width: 100%;
-    max-width: 600px; /* Ajuste conforme necessário */
-    margin: 0 auto;
-  }
-
-  .progress-bar {
-    background-color: #0d6efd; /* Cor primária do Bootstrap */
-    height: 100%;
-    transition: width 0.5s ease;
-  }
-
-
-
-  .active-shuffle {
-    color: #1DB954 !important;
-}
-  
-
-  
-  /* Botão de carregamento */
-  .loading {
+/* Botão de carregamento */
+.loading {
     pointer-events: none;
     opacity: 0.6;
-  }
+}
 
-  .progress-circle {
+.progress-circle {
     position: relative;
     width: 100px;
     height: 100px;
@@ -489,7 +419,6 @@ body {
     outline: none;
     cursor: pointer;
 }
-
 
 .tooltip-volume {
     position: absolute;

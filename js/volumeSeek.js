@@ -118,6 +118,11 @@ export const VolumeSeekModule = (function() {
         }
 
         function init() {
+            if (!handleMain || !progressMain || !progressBarMain) {
+                console.error('Elementos do SeekModule não encontrados no DOM.');
+                return;
+            }
+
             const handle = handleMain;
             const progress = progressMain;
 
@@ -266,15 +271,25 @@ export const VolumeSeekModule = (function() {
                     await player.setVolume(0);
                     updateUI(handleVolume, volumeBar, 0);
                     localStorage.setItem('volume_percent', 0);
-                    btnVolume.querySelector('i').classList.remove('fa-volume-up');
-                    btnVolume.querySelector('i').classList.add('fa-volume-mute');
+                    if (btnVolume) {
+                        const icon = btnVolume.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-volume-up');
+                            icon.classList.add('fa-volume-mute');
+                        }
+                    }
                 } else {
                     const defaultVolume = 50;
                     await player.setVolume(defaultVolume / 100);
                     updateUI(handleVolume, volumeBar, defaultVolume);
                     localStorage.setItem('volume_percent', defaultVolume);
-                    btnVolume.querySelector('i').classList.remove('fa-volume-mute');
-                    btnVolume.querySelector('i').classList.add('fa-volume-up');
+                    if (btnVolume) {
+                        const icon = btnVolume.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-volume-mute');
+                            icon.classList.add('fa-volume-up');
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Erro ao alternar Volume:', error);
@@ -282,13 +297,24 @@ export const VolumeSeekModule = (function() {
         }
 
         function setupEventListeners() {
-            handleVolume.addEventListener('mousedown', handleMouseDown);
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            progressVolume.addEventListener('click', handleClick);
+            if (handleVolume) {
+                handleVolume.addEventListener('mousedown', handleMouseDown);
+            } else {
+                console.error('Elemento #handle-volume não encontrado no DOM.');
+            }
+
+            if (progressVolume) {
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+                progressVolume.addEventListener('click', handleClick);
+            } else {
+                console.error('Elemento #progress-volume não encontrado no DOM.');
+            }
 
             if (btnVolume) {
                 btnVolume.addEventListener('click', debounce(toggleMute, 300));
+            } else {
+                console.error('Elemento #btn-volume não encontrado no DOM.');
             }
         }
 
@@ -297,8 +323,10 @@ export const VolumeSeekModule = (function() {
 
             const savedVolumePercent = parseFloat(localStorage.getItem('volume_percent'));
             if (!isNaN(savedVolumePercent)) {
-                updateUI(handleVolume, volumeBar, savedVolumePercent);
-                await performVolumeUpdate(savedVolumePercent);
+                if (handleVolume && volumeBar && progressVolume) {
+                    updateUI(handleVolume, volumeBar, savedVolumePercent);
+                    await performVolumeUpdate(savedVolumePercent);
+                }
             }
         }
 

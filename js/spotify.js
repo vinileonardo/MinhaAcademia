@@ -19,6 +19,7 @@ export async function initializeApp() {
         if (token) {
             await PlayerModule.initializePlayer(token);
             showPlayer(); // Exibe o player
+            scheduleTokenRefresh(); // Agendar a atualização do token
         } else {
             console.log('Token de acesso não encontrado.');
         }
@@ -34,8 +35,13 @@ export async function initializeApp() {
                 showPlayer(); // Exibe o player
             } else {
                 console.log('Usuário NÃO autenticado. Exibindo modal de login.');
-                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-                loginModal.show();
+                const loginModalElement = document.getElementById('loginModal');
+                if (loginModalElement) {
+                    const loginModal = new bootstrap.Modal(loginModalElement);
+                    loginModal.show();
+                } else {
+                    console.error('Modal de login não encontrado no DOM.');
+                }
             }
         });
     } else {
@@ -64,10 +70,15 @@ export async function initializeApp() {
         if (token) {
             await PlayerModule.initializePlayer(token);
             showPlayer(); // Exibe o player
+            scheduleTokenRefresh(); // Agendar a atualização do token
         }
     } else {
         console.log('Usuário NÃO autenticado após redirecionamento');
     }
+
+    // Inicializa os módulos adicionais após a autenticação
+    VolumeSeekModule.init();
+    // Inicialize outros módulos conforme necessário
 }
 
 /**
@@ -75,6 +86,7 @@ export async function initializeApp() {
  * Remove o modal de login (se estiver visível) e exibe o footer do player.
  */
 function showPlayer() {
+    console.log('Chamando showPlayer');
     // Esconde o modal de login, se estiver aberto
     const loginModalElement = document.getElementById('loginModal');
     if (loginModalElement) {
@@ -90,5 +102,39 @@ function showPlayer() {
         spotifyPlayer.style.display = 'block';
     } else {
         console.log('Elemento do player NÃO encontrado.');
+    }
+}
+
+/**
+ * Função para agendar a atualização do token
+ */
+async function scheduleTokenRefresh() {
+    const expiresAt = localStorage.getItem('expires_at');
+    if (!expiresAt) {
+        console.log('expires_at não encontrado. Não é possível agendar a atualização do token.');
+        return;
+    }
+
+    const currentTime = new Date().getTime();
+    const timeLeft = expiresAt - currentTime;
+
+    if (timeLeft <= 0) {
+        console.log('O token já expirou. Atualizando imediatamente.');
+        await AuthModule.refreshAccessToken();
+        scheduleTokenRefresh(); // Reagendar após a atualização
+    } else {
+        // Agendar a atualização 5 minutos antes do token expirar
+        const refreshTime = timeLeft - 5 * 60 * 1000; // 5 minutos antes
+        if (refreshTime <= 0) {
+            console.log('Tempo para atualização já passou. Atualizando imediatamente.');
+            await AuthModule.refreshAccessToken();
+            scheduleTokenRefresh(); // Reagendar após a atualização
+        } else {
+            console.log(`Agendando atualização do token em ${refreshTime / 1000} segundos.`);
+            setTimeout(async () => {
+                await AuthModule.refreshAccessToken();
+                scheduleTokenRefresh(); // Reagendar após a atualização
+            }, refreshTime);
+        }
     }
 }

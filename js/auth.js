@@ -132,6 +132,55 @@ export const AuthModule = (function() {
         }
     }
 
+    async function refreshAccessToken() {
+        console.log('Atualizando token de acesso');
+        const refresh_token = localStorage.getItem('refresh_token');
+        if (!refresh_token) {
+            console.error('Refresh token não encontrado');
+            return;
+        }
+
+        const body = new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refresh_token,
+            client_id: clientId,
+        });
+
+        try {
+            const response = await fetch('https://accounts.spotify.com/api/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: body.toString(),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                console.error('Erro na resposta da API ao atualizar token:', errorData);
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.access_token) {
+                console.log('Token atualizado com sucesso');
+                localStorage.setItem('access_token', data.access_token);
+                // Spotify não sempre retorna um novo refresh_token
+                if (data.refresh_token) {
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                }
+                const expiresAt = new Date().getTime() + data.expires_in * 1000;
+                localStorage.setItem('expires_at', expiresAt);
+                return data.access_token;
+            } else {
+                console.error('Erro ao atualizar o token:', data);
+            }
+        } catch (error) {
+            console.error('Erro na requisição de atualização do token:', error);
+        }
+    }
+
     function isAuthenticated() {
         const token = localStorage.getItem('access_token');
         const expiresAt = localStorage.getItem('expires_at');
@@ -158,6 +207,7 @@ export const AuthModule = (function() {
         initiateAuth,
         isAuthenticated,
         handleRedirect,
+        refreshAccessToken, // Adicionado
         clientId,
         redirectUri,
         scopes,
